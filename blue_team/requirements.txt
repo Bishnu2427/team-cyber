@@ -1,0 +1,9 @@
+flask
+flask-cors
+langchain-core
+langchain-community
+langchain-groq
+ollama
+httpx
+python-dotenv
+# semgrep, bandit, pip-audit, trivy installed via Dockerfile

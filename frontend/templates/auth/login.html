@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block navbar %}{% endblock %}
+{% block title %}Login — Team Cyber{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <span class="brand-hex lg">⬡</span>
+      <h1>TEAM<strong>CYBER</strong></h1>
+      <p class="auth-tagline">Autonomous Cybersecurity Platform</p>
+    </div>
+
+    <div id="auth-error" class="alert alert-error hidden"></div>
+
+    <form id="login-form" class="auth-form">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" placeholder="analyst@company.com" required />
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="••••••••" required />
+      </div>
+      <button type="submit" class="btn btn-primary btn-full" id="login-btn">
+        <span class="btn-text">Sign In</span>
+        <span class="btn-loader hidden">Authenticating…</span>
+      </button>
+    </form>
+
+    <p class="auth-footer">
+      No account? <a href="/register">Register</a>
+    </p>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById("login-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const btn    = document.getElementById("login-btn");
+  const errEl  = document.getElementById("auth-error");
+  const email  = document.getElementById("email").value;
+  const pass   = document.getElementById("password").value;
+
+  btn.querySelector(".btn-text").classList.add("hidden");
+  btn.querySelector(".btn-loader").classList.remove("hidden");
+  errEl.classList.add("hidden");
+
+  const res  = await fetch("/api/auth/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password: pass }),
+  });
+  const data = await res.json();
+
+  if (res.ok) {
+    localStorage.setItem("tc_token", data.token);
+    localStorage.setItem("tc_user",  data.username);
+    window.location.href = "/dashboard";
+  } else {
+    errEl.textContent = data.error || "Login failed";
+    errEl.classList.remove("hidden");
+    btn.querySelector(".btn-text").classList.remove("hidden");
+    btn.querySelector(".btn-loader").classList.add("hidden");
+  }
+});
+</script>
+{% endblock %}

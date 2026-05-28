@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Team Cyber{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
+  {% block head %}{% endblock %}
+</head>
+<body>
+
+{% block navbar %}
+<nav class="navbar">
+  <a class="nav-brand" href="/dashboard">
+    <span class="brand-hex">⬡</span>
+    <span>TEAM<strong>CYBER</strong></span>
+  </a>
+  <div class="nav-links">
+    <a href="/dashboard" class="nav-link">Dashboard</a>
+    <a href="/scans/new" class="nav-link btn-outline">+ New Scan</a>
+    <button class="nav-link btn-ghost" onclick="logout()">Logout</button>
+  </div>
+</nav>
+{% endblock %}
+
+<main class="page-content">
+  {% block content %}{% endblock %}
+</main>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

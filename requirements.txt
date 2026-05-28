@@ -1,0 +1,44 @@
+# Web framework
+flask
+flask-jwt-extended
+flask-cors
+flask-socketio
+flask-pymongo
+gunicorn
+eventlet
+
+# Database
+pymongo
+redis
+
+# Vector DB
+qdrant-client
+
+# Agent orchestration
+langgraph
+langchain-core
+langchain-community
+langchain-groq
+
+# Local LLM
+ollama
+
+# Embeddings
+sentence-transformers
+
+# PDF generation
+reportlab
+
+# Git operations
+gitpython
+
+# Utilities
+python-dotenv
+httpx
+pydantic
+werkzeug
+
+# Security tools (installed in container, listed for reference)
+# semgrep
+# bandit
+# pip-audit

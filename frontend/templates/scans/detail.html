@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+{% block title %}Scan Detail — Team Cyber{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h2 class="page-title" id="scan-title">Loading scan…</h2>
+    <p class="page-sub" id="scan-meta"></p>
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-outline" id="pdf-btn" onclick="downloadPDF()" style="display:none">
+      ⬇ Download PDF Report
+    </button>
+    <a href="/dashboard" class="btn btn-ghost">← Dashboard</a>
+  </div>
+</div>
+
+<!-- Progress bar (visible while scan runs) -->
+<div id="progress-section" class="section-card hidden">
+  <div class="section-header">
+    <h3>🔄 Scan In Progress</h3>
+    <span id="progress-pct" class="badge badge-warning">0%</span>
+  </div>
+  <div class="progress-bar-track">
+    <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+  </div>
+  <p class="progress-msg" id="progress-msg">Initialising…</p>
+</div>
+
+<!-- Findings summary -->
+<div class="stats-grid" id="sev-stats" style="display:none">
+  <div class="stat-card critical"><div class="stat-label">Critical</div><div class="stat-value" id="fc-critical">0</div></div>
+  <div class="stat-card high">   <div class="stat-label">High</div>    <div class="stat-value" id="fc-high">0</div></div>
+  <div class="stat-card medium"> <div class="stat-label">Medium</div>  <div class="stat-value" id="fc-medium">0</div></div>
+  <div class="stat-card low">    <div class="stat-label">Low</div>     <div class="stat-value" id="fc-low">0</div></div>
+  <div class="stat-card info">   <div class="stat-label">OWASP Score</div><div class="stat-value" id="fc-owasp">—</div></div>
+</div>
+
+<!-- Findings table -->
+<div class="section-card" id="findings-section" style="display:none">
+  <div class="section-header">
+    <h3>Vulnerability Findings</h3>
+    <div class="filter-row">
+      <select id="sev-filter" onchange="filterFindings()">
+        <option value="">All Severities</option>
+        <option value="critical">Critical</option>
+        <option value="high">High</option>
+        <option value="medium">Medium</option>
+        <option value="low">Low</option>
+      </select>
+      <select id="tool-filter" onchange="filterFindings()">
+        <option value="">All Tools</option>
+        <option value="semgrep">Semgrep</option>
+        <option value="bandit">Bandit</option>
+        <option value="trivy">Trivy</option>
+        <option value="pip-audit">pip-audit</option>
+      </select>
+    </div>
+  </div>
+  <div id="findings-list"></div>
+</div>
+
+<!-- Error state -->
+<div class="section-card hidden" id="error-section">
+  <div class="empty-row">
+    <span class="text-danger">✖ Scan failed.</span>
+    <span id="error-msg" class="text-muted"></span>
+  </div>
+</div>
+
+<!-- Finding detail modal -->
+<div class="modal-overlay hidden" id="modal-overlay" onclick="closeModal()">
+  <div class="modal-card" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div id="modal-content"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+requireAuth();
+
+const SCAN_ID = "{{ scan_id }}";
+let allFindings = [];
+let socket;
+
+async function init() {
+  const data = await apiGet(`/api/scans/${SCAN_ID}`);
+  if (!data) return;
+
+  const scan = data.scan;
+  document.getElementById("scan-title").textContent = scan.project_name;
+  document.getElementById("scan-meta").textContent  =
+    `${scan.source_type.toUpperCase()} • ${new Date(scan.created_at).toLocaleString()}`;
+
+  if (scan.status === "completed") {
+    renderCompleted(scan, data.findings);
+  } else if (scan.status === "failed") {
+    document.getElementById("error-section").classList.remove("hidden");
+    document.getElementById("error-msg").textContent = scan.error || "Unknown error";
+  } else {
+    // running or queued — show progress and open socket
+    document.getElementById("progress-section").classList.remove("hidden");
+    connectSocket();
+  }
+}
+
+function connectSocket() {
+  socket = io("/", { auth: { token: localStorage.getItem("tc_token") } });
+
+  socket.on("scan_progress", (d) => {
+    if (d.scan_id !== SCAN_ID) return;
+    const pct = d.progress || 0;
+    document.getElementById("progress-fill").style.width = pct + "%";
+    document.getElementById("progress-pct").textContent  = pct + "%";
+    document.getElementById("progress-msg").textContent  = d.message || "";
+  });
+
+  socket.on("scan_complete", async (d) => {
+    if (d.scan_id !== SCAN_ID) return;
+    socket.disconnect();
+    const data = await apiGet(`/api/scans/${SCAN_ID}`);
+    if (data) renderCompleted(data.scan, data.findings);
+  });
+
+  socket.on("scan_error", (d) => {
+    if (d.scan_id !== SCAN_ID) return;
+    document.getElementById("progress-section").classList.add("hidden");
+    document.getElementById("error-section").classList.remove("hidden");
+    document.getElementById("error-msg").textContent = d.error || "Unknown error";
+  });
+}
+
+function renderCompleted(scan, findings) {
+  document.getElementById("progress-section").classList.add("hidden");
+  document.getElementById("sev-stats").style.display = "";
+  document.getElementById("findings-section").style.display = "";
+  document.getElementById("pdf-btn").style.display = "";
+
+  const c = scan.findings_count || {};
+  document.getElementById("fc-critical").textContent = c.critical || 0;
+  document.getElementById("fc-high").textContent     = c.high     || 0;
+  document.getElementById("fc-medium").textContent   = c.medium   || 0;
+  document.getElementById("fc-low").textContent      = c.low      || 0;
+
+  const score = scan.compliance_results?.score;
+  document.getElementById("fc-owasp").textContent = score != null ? score + "%" : "—";
+
+  allFindings = findings;
+  renderFindings(findings);
+}
+
+function renderFindings(findings) {
+  const el = document.getElementById("findings-list");
+  if (!findings.length) {
+    el.innerHTML = '<div class="empty-row">No findings for this filter.</div>';
+    return;
+  }
+  el.innerHTML = findings.map((f, i) => `
+    <div class="finding-row sev-border-${f.severity}" onclick="openFinding(${i})">
+      <div class="finding-main">
+        <span class="badge badge-${f.severity}">${f.severity.toUpperCase()}</span>
+        <span class="finding-name">${f.vulnerability}</span>
+        <span class="badge badge-tool">${f.tool}</span>
+        ${f.cve ? `<span class="badge badge-info">${f.cve}</span>` : ""}
+      </div>
+      <div class="finding-meta">
+        <span class="text-muted">${f.location || ""}${f.line ? `:${f.line}` : ""}</span>
+        <span class="conf-pill">${Math.round((f.confidence||0)*100)}% confidence</span>
+      </div>
+    </div>
+  `).join("");
+}
+
+function filterFindings() {
+  const sev  = document.getElementById("sev-filter").value;
+  const tool = document.getElementById("tool-filter").value;
+  const filtered = allFindings.filter(f =>
+    (!sev  || f.severity === sev) &&
+    (!tool || f.tool === tool)
+  );
+  renderFindings(filtered);
+}
+
+function openFinding(idx) {
+  const f = allFindings[idx];
+  document.getElementById("modal-content").innerHTML = `
+    <h3 class="modal-title">${f.vulnerability}</h3>
+    <div class="modal-badges">
+      <span class="badge badge-${f.severity}">${f.severity.toUpperCase()}</span>
+      <span class="badge badge-tool">${f.tool}</span>
+      ${f.owasp ? `<span class="badge badge-info">${f.owasp}</span>` : ""}
+      ${f.cve   ? `<span class="badge badge-info">${f.cve}</span>`   : ""}
+    </div>
+    <div class="modal-grid">
+      <div class="modal-row"><span>Location</span><code>${f.location || "—"}${f.line ? `:${f.line}` : ""}</code></div>
+      <div class="modal-row"><span>Confidence</span><span>${Math.round((f.confidence||0)*100)}%</span></div>
+    </div>
+    ${f.root_cause ? `<div class="modal-section"><h4>Root Cause</h4><p>${f.root_cause}</p></div>` : ""}
+    ${f.impact     ? `<div class="modal-section"><h4>Impact</h4><p>${f.impact}</p></div>` : ""}
+    ${f.fix        ? `<div class="modal-section modal-fix"><h4>Recommended Fix</h4><p>${f.fix}</p></div>` : ""}
+    ${f.code_snippet ? `<div class="modal-section"><h4>Code</h4><pre class="code-block">${escHtml(f.code_snippet)}</pre></div>` : ""}
+  `;
+  document.getElementById("modal-overlay").classList.remove("hidden");
+}
+
+function closeModal() {
+  document.getElementById("modal-overlay").classList.add("hidden");
+}
+
+function downloadPDF() {
+  const token = localStorage.getItem("tc_token");
+  window.open(`/api/reports/${SCAN_ID}/pdf?token=${token}`, "_blank");
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+// Load socket.io from CDN for real-time updates
+const sioScript = document.createElement("script");
+sioScript.src = "https://cdn.socket.io/4.7.5/socket.io.min.js";
+sioScript.onload = init;
+document.head.appendChild(sioScript);
+</script>
+{% endblock %}

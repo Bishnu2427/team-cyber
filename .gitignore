@@ -1,0 +1,60 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+parts/
+var/
+sdist/
+develop-eggs/
+.installed.cfg
+lib/
+lib64/
+venv/
+env/
+.env
+.venv
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Docker
+docker/volumes/
+
+# Uploads / scan data
+uploads/
+results/
+
+# PDF reports
+reports/*.pdf
+
+# Logs
+*.log
+logs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# MongoDB
+*.bson
+
+# Qdrant local storage
+qdrant_storage/
+
+# Node (future)
+node_modules/

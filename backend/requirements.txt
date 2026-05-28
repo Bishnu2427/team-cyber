@@ -1,0 +1,14 @@
+# Backend — API Gateway only
+flask
+flask-jwt-extended
+flask-cors
+flask-socketio
+flask-pymongo
+pymongo
+redis
+gevent
+gevent-websocket
+python-dotenv
+httpx
+gitpython
+werkzeug

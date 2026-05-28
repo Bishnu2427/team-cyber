@@ -1,0 +1,232 @@
+# ════════════════════════════════════════════════════════════════
+#  Team Cyber — Multi-Container Agent Architecture
+#  Container map:
+#    nginx        :80    → Entry point (proxy + static files)
+#    backend      :5000  → API Gateway + JWT + HTML + WebSocket
+#    orchestrator :8000  → Main Supervisor (LangGraph)
+#    red-team     :8001  → Red Team Supervisor + agents
+#    blue-team    :8002  → Blue Team Supervisor + agents
+#    verifier     :8003  → Verification + Reflection + Consensus
+#    reporter     :8004  → PDF Report Generator
+#    mongo              → MongoDB (shared)
+#    redis              → Redis  (pub/sub + cache)
+#    qdrant             → Vector DB (RAG)
+#    ollama             → Local LLM (NVIDIA GPU)
+# ════════════════════════════════════════════════════════════════
+
+services:
+
+  # ── Nginx (public entry point — port 80) ─────────────────────────
+  nginx:
+    build:
+      context: ..
+      dockerfile: docker/nginx.Dockerfile
+    container_name: tc-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ../frontend/static:/app/frontend/static:ro
+    depends_on:
+      - backend
+    networks: [tc-net]
+    restart: unless-stopped
+
+  # ── API Gateway ──────────────────────────────────────────────────
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/backend.Dockerfile
+    container_name: tc-backend
+    ports:
+      - "5000:5000"       # also kept for direct access / debugging
+    env_file: ../.env
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/teamcyber
+      - REDIS_URL=redis://redis:6379/0
+      - ORCHESTRATOR_URL=http://orchestrator:8000
+      - REPORTER_URL=http://reporter:8004
+    volumes:
+      - ../backend:/app/backend
+      - ../frontend:/app/frontend
+      - scan_uploads:/app/uploads
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks: [tc-net]
+    restart: unless-stopped
+
+  # ── Main Supervisor (Orchestrator) ────────────────────────────────
+  orchestrator:
+    build:
+      context: ..
+      dockerfile: docker/orchestrator.Dockerfile
+    container_name: tc-orchestrator
+    ports:
+      - "8000:8000"
+    env_file: ../.env
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/teamcyber
+      - REDIS_URL=redis://redis:6379/0
+      - QDRANT_HOST=qdrant
+      - QDRANT_PORT=6333
+      - BLUE_TEAM_URL=http://blue-team:8002
+      - RED_TEAM_URL=http://red-team:8001
+      - VERIFIER_URL=http://verifier:8003
+      - REPORTER_URL=http://reporter:8004
+    volumes:
+      - scan_uploads:/app/uploads
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      blue-team:
+        condition: service_started
+      red-team:
+        condition: service_started
+    networks: [tc-net]
+    restart: unless-stopped
+
+  # ── Red Team Container ───────────────────────────────────────────
+  red-team:
+    build:
+      context: ..
+      dockerfile: docker/red_team.Dockerfile
+    container_name: tc-red-team
+    ports:
+      - "8001:8001"
+    env_file: ../.env
+    volumes:
+      - scan_uploads:/app/uploads
+    networks: [tc-net]
+    restart: unless-stopped
+
+  # ── Blue Team Container ──────────────────────────────────────────
+  blue-team:
+    build:
+      context: ..
+      dockerfile: docker/blue_team.Dockerfile
+    container_name: tc-blue-team
+    ports:
+      - "8002:8002"
+    env_file: ../.env
+    volumes:
+      - scan_uploads:/app/uploads
+    depends_on:
+      - ollama
+    networks: [tc-net]
+    restart: unless-stopped
+
+  # ── Verification + Reflection + Consensus ────────────────────────
+  verifier:
+    build:
+      context: ..
+      dockerfile: docker/verifier.Dockerfile
+    container_name: tc-verifier
+    ports:
+      - "8003:8003"
+    env_file: ../.env
+    networks: [tc-net]
+    restart: unless-stopped
+
+  # ── Report Generator + Dashboard Engine ─────────────────────────
+  reporter:
+    build:
+      context: ..
+      dockerfile: docker/reporter.Dockerfile
+    container_name: tc-reporter
+    ports:
+      - "8004:8004"
+    env_file: ../.env
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/teamcyber
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks: [tc-net]
+    restart: unless-stopped
+
+  # ── MongoDB ──────────────────────────────────────────────────────
+  mongo:
+    image: mongo:7.0
+    container_name: tc-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks: [tc-net]
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ── Redis (pub/sub + cache) ──────────────────────────────────────
+  redis:
+    image: redis:7.2-alpine
+    container_name: tc-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks: [tc-net]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ── Qdrant (Vector DB / RAG) ─────────────────────────────────────
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: tc-qdrant
+    ports:
+      - "6333:6333"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    networks: [tc-net]
+    restart: unless-stopped
+
+  # ── Ollama (Local LLM — NVIDIA GPU) ─────────────────────────────
+  ollama:
+    image: ollama/ollama:latest
+    container_name: tc-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    networks: [tc-net]
+    restart: unless-stopped
+
+  # ── One-shot model puller ────────────────────────────────────────
+  ollama-init:
+    image: ollama/ollama:latest
+    container_name: tc-ollama-init
+    depends_on: [ollama]
+    entrypoint: >
+      sh -c "sleep 15 &&
+             OLLAMA_HOST=http://ollama:11434 ollama pull qwen2.5-coder:7b"
+    networks: [tc-net]
+    restart: "no"
+
+networks:
+  tc-net:
+    driver: bridge
+
+volumes:
+  mongo_data:
+  redis_data:
+  qdrant_data:
+  ollama_data:
+  scan_uploads:

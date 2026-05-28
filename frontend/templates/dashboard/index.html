@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Team Cyber{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h2 class="page-title">Security Dashboard</h2>
+    <p class="page-sub" id="welcome-msg">Welcome back</p>
+  </div>
+  <a href="/scans/new" class="btn btn-primary">+ New Scan</a>
+</div>
+
+<!-- Stats row -->
+<div class="stats-grid" id="stats-grid">
+  <div class="stat-card critical">
+    <div class="stat-label">Critical</div>
+    <div class="stat-value" id="stat-critical">—</div>
+  </div>
+  <div class="stat-card high">
+    <div class="stat-label">High</div>
+    <div class="stat-value" id="stat-high">—</div>
+  </div>
+  <div class="stat-card medium">
+    <div class="stat-label">Medium</div>
+    <div class="stat-value" id="stat-medium">—</div>
+  </div>
+  <div class="stat-card low">
+    <div class="stat-label">Low</div>
+    <div class="stat-value" id="stat-low">—</div>
+  </div>
+  <div class="stat-card info">
+    <div class="stat-label">Total Scans</div>
+    <div class="stat-value" id="stat-scans">—</div>
+  </div>
+</div>
+
+<!-- Recent scans table -->
+<div class="section-card">
+  <div class="section-header">
+    <h3>Recent Scans</h3>
+    <button class="btn btn-ghost btn-sm" onclick="loadScans()">↻ Refresh</button>
+  </div>
+
+  <div id="scan-loading" class="loading-row">Loading scans…</div>
+  <div id="scan-empty"   class="empty-row hidden">No scans yet. <a href="/scans/new">Start your first scan →</a></div>
+
+  <table class="data-table hidden" id="scans-table">
+    <thead>
+      <tr>
+        <th>Project</th>
+        <th>Source</th>
+        <th>Status</th>
+        <th>Critical</th>
+        <th>High</th>
+        <th>Medium</th>
+        <th>Low</th>
+        <th>Date</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody id="scans-tbody"></tbody>
+  </table>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+requireAuth();
+
+const user = localStorage.getItem("tc_user") || "analyst";
+document.getElementById("welcome-msg").textContent = `Welcome back, ${user}`;
+
+async function loadScans() {
+  document.getElementById("scan-loading").classList.remove("hidden");
+  document.getElementById("scans-table").classList.add("hidden");
+  document.getElementById("scan-empty").classList.add("hidden");
+
+  const scans = await apiGet("/api/scans/");
+  document.getElementById("scan-loading").classList.add("hidden");
+
+  if (!scans || scans.length === 0) {
+    document.getElementById("scan-empty").classList.remove("hidden");
+    return;
+  }
+
+  // Aggregate stats
+  let totals = { critical: 0, high: 0, medium: 0, low: 0 };
+  scans.forEach(s => {
+    const c = s.findings_count || {};
+    totals.critical += c.critical || 0;
+    totals.high     += c.high     || 0;
+    totals.medium   += c.medium   || 0;
+    totals.low      += c.low      || 0;
+  });
+  document.getElementById("stat-critical").textContent = totals.critical;
+  document.getElementById("stat-high").textContent     = totals.high;
+  document.getElementById("stat-medium").textContent   = totals.medium;
+  document.getElementById("stat-low").textContent      = totals.low;
+  document.getElementById("stat-scans").textContent    = scans.length;
+
+  const tbody = document.getElementById("scans-tbody");
+  tbody.innerHTML = "";
+  scans.forEach(s => {
+    const c    = s.findings_count || {};
+    const date = new Date(s.created_at).toLocaleDateString();
+    tbody.innerHTML += `
+      <tr>
+        <td><a href="/scans/${s._id}" class="link">${s.project_name}</a></td>
+        <td><span class="badge badge-info">${s.source_type.toUpperCase()}</span></td>
+        <td><span class="badge badge-${statusColor(s.status)}">${s.status}</span></td>
+        <td class="sev-critical">${c.critical || 0}</td>
+        <td class="sev-high">${c.high || 0}</td>
+        <td class="sev-medium">${c.medium || 0}</td>
+        <td class="sev-low">${c.low || 0}</td>
+        <td class="text-muted">${date}</td>
+        <td><a href="/scans/${s._id}" class="btn btn-ghost btn-sm">View →</a></td>
+      </tr>`;
+  });
+  document.getElementById("scans-table").classList.remove("hidden");
+}
+
+function statusColor(s) {
+  return { completed: "success", running: "warning", failed: "error", queued: "info" }[s] || "info";
+}
+
+loadScans();
+</script>
+{% endblock %}

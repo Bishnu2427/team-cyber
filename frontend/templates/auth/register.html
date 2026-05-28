@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block navbar %}{% endblock %}
+{% block title %}Register — Team Cyber{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <span class="brand-hex lg">⬡</span>
+      <h1>TEAM<strong>CYBER</strong></h1>
+      <p class="auth-tagline">Create your analyst account</p>
+    </div>
+
+    <div id="auth-error" class="alert alert-error hidden"></div>
+
+    <form id="register-form" class="auth-form">
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" placeholder="analyst_01" required />
+      </div>
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" placeholder="analyst@company.com" required />
+      </div>
+      <div class="form-group">
+        <label for="password">Password <span class="hint">(min 8 chars)</span></label>
+        <input type="password" id="password" placeholder="••••••••" required minlength="8" />
+      </div>
+      <button type="submit" class="btn btn-primary btn-full" id="reg-btn">
+        <span class="btn-text">Create Account</span>
+        <span class="btn-loader hidden">Creating…</span>
+      </button>
+    </form>
+
+    <p class="auth-footer">
+      Already have an account? <a href="/login">Sign in</a>
+    </p>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById("register-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const btn      = document.getElementById("reg-btn");
+  const errEl    = document.getElementById("auth-error");
+  const username = document.getElementById("username").value;
+  const email    = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  btn.querySelector(".btn-text").classList.add("hidden");
+  btn.querySelector(".btn-loader").classList.remove("hidden");
+  errEl.classList.add("hidden");
+
+  const res  = await fetch("/api/auth/register", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, email, password }),
+  });
+  const data = await res.json();
+
+  if (res.ok) {
+    localStorage.setItem("tc_token", data.token);
+    localStorage.setItem("tc_user",  data.username);
+    window.location.href = "/dashboard";
+  } else {
+    errEl.textContent = data.error || "Registration failed";
+    errEl.classList.remove("hidden");
+    btn.querySelector(".btn-text").classList.remove("hidden");
+    btn.querySelector(".btn-loader").classList.add("hidden");
+  }
+});
+</script>
+{% endblock %}

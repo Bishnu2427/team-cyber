@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block title %}New Scan — Team Cyber{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h2 class="page-title">New Security Scan</h2>
+    <p class="page-sub">Upload a ZIP file or provide a GitHub repository URL</p>
+  </div>
+  <a href="/dashboard" class="btn btn-ghost">← Back</a>
+</div>
+
+<div class="scan-form-grid">
+
+  <!-- ZIP Upload -->
+  <div class="section-card">
+    <div class="section-header">
+      <h3>📦 Upload ZIP Archive</h3>
+    </div>
+    <div id="zip-error" class="alert alert-error hidden"></div>
+    <form id="zip-form" enctype="multipart/form-data">
+      <div class="form-group">
+        <label>Project Name</label>
+        <input type="text" id="zip-name" placeholder="my-app" />
+      </div>
+      <div class="form-group">
+        <label>ZIP File</label>
+        <div class="file-drop" id="file-drop">
+          <input type="file" id="zip-file" accept=".zip" class="file-input" />
+          <div class="file-drop-label">
+            <span class="drop-icon">⬆</span>
+            <span id="file-label">Drag & drop or click to select .zip</span>
+          </div>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary btn-full" id="zip-btn">
+        <span class="btn-text">Start Scan</span>
+        <span class="btn-loader hidden">Uploading…</span>
+      </button>
+    </form>
+  </div>
+
+  <!-- GitHub -->
+  <div class="section-card">
+    <div class="section-header">
+      <h3>🐙 GitHub Repository</h3>
+    </div>
+    <div id="gh-error" class="alert alert-error hidden"></div>
+    <form id="gh-form">
+      <div class="form-group">
+        <label>Project Name</label>
+        <input type="text" id="gh-name" placeholder="my-repo" />
+      </div>
+      <div class="form-group">
+        <label>GitHub URL</label>
+        <input type="url" id="gh-url" placeholder="https://github.com/owner/repo" required />
+      </div>
+      <button type="submit" class="btn btn-primary btn-full" id="gh-btn">
+        <span class="btn-text">Start Scan</span>
+        <span class="btn-loader hidden">Cloning…</span>
+      </button>
+    </form>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+requireAuth();
+
+// File drop UI
+const fileInput = document.getElementById("zip-file");
+const fileLabel = document.getElementById("file-label");
+fileInput.addEventListener("change", () => {
+  fileLabel.textContent = fileInput.files[0]?.name || "No file selected";
+});
+
+// ZIP upload
+document.getElementById("zip-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const btn  = document.getElementById("zip-btn");
+  const errEl = document.getElementById("zip-error");
+  const file  = fileInput.files[0];
+  if (!file) { errEl.textContent = "Please select a ZIP file"; errEl.classList.remove("hidden"); return; }
+
+  setLoading(btn, true);
+  errEl.classList.add("hidden");
+
+  const fd = new FormData();
+  fd.append("file", file);
+  fd.append("project_name", document.getElementById("zip-name").value || file.name.replace(".zip",""));
+
+  const res  = await fetch("/api/scans/upload", {
+    method: "POST",
+    headers: { "Authorization": `Bearer ${localStorage.getItem("tc_token")}` },
+    body: fd,
+  });
+  const data = await res.json();
+
+  if (res.ok) {
+    window.location.href = `/scans/${data.scan_id}`;
+  } else {
+    errEl.textContent = data.error || "Upload failed";
+    errEl.classList.remove("hidden");
+    setLoading(btn, false);
+  }
+});
+
+// GitHub scan
+document.getElementById("gh-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const btn   = document.getElementById("gh-btn");
+  const errEl = document.getElementById("gh-error");
+  const url   = document.getElementById("gh-url").value.trim();
+  const name  = document.getElementById("gh-name").value.trim() || url.split("/").pop();
+
+  setLoading(btn, true);
+  errEl.classList.add("hidden");
+
+  const res  = await apiPost("/api/scans/github", { url, project_name: name });
+  const data = await res.json();
+
+  if (res.ok) {
+    window.location.href = `/scans/${data.scan_id}`;
+  } else {
+    errEl.textContent = data.error || "Scan failed";
+    errEl.classList.remove("hidden");
+    setLoading(btn, false);
+  }
+});
+
+function setLoading(btn, on) {
+  btn.querySelector(".btn-text").classList.toggle("hidden", on);
+  btn.querySelector(".btn-loader").classList.toggle("hidden", !on);
+  btn.disabled = on;
+}
+</script>
+{% endblock %}
