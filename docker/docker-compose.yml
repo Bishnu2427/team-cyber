@@ -207,16 +207,25 @@ services:
               count: all
               capabilities: [gpu]
     networks: [tc-net]
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 20s
+      timeout: 15s
+      retries: 5
+      start_period: 30s
     restart: unless-stopped
 
-  # ── One-shot model puller ────────────────────────────────────────
+  # ── One-shot model puller (runs after Ollama is healthy) ─────────
   ollama-init:
     image: ollama/ollama:latest
     container_name: tc-ollama-init
-    depends_on: [ollama]
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
     entrypoint: >
-      sh -c "sleep 15 &&
-             OLLAMA_HOST=http://ollama:11434 ollama pull qwen2.5-coder:7b"
+      sh -c "ollama pull qwen2.5-coder:7b && echo 'Model pull complete'"
     networks: [tc-net]
     restart: "no"
 

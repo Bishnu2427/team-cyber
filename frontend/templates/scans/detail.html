@@ -209,9 +209,28 @@ function closeModal() {
   document.getElementById("modal-overlay").classList.add("hidden");
 }
 
-function downloadPDF() {
-  const token = localStorage.getItem("tc_token");
-  window.open(`/api/reports/${SCAN_ID}/pdf?token=${token}`, "_blank");
+async function downloadPDF() {
+  const btn = document.getElementById("pdf-btn");
+  btn.textContent = "⏳ Generating…";
+  btn.disabled = true;
+  try {
+    const resp = await fetch(`/api/reports/${SCAN_ID}/pdf`, {
+      headers: { "Authorization": `Bearer ${localStorage.getItem("tc_token")}` }
+    });
+    if (!resp.ok) { alert("Report generation failed. Is the reporter service running?"); return; }
+    const blob = await resp.blob();
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement("a");
+    a.href     = url;
+    a.download = `teamcyber_report_${SCAN_ID.slice(0, 8)}.pdf`;
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch (e) {
+    alert("Error downloading report: " + e.message);
+  } finally {
+    btn.textContent = "⬇ Download PDF Report";
+    btn.disabled = false;
+  }
 }
 
 function escHtml(s) {
