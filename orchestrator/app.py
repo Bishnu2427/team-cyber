@@ -23,17 +23,22 @@ def health():
 
 @app.route("/scan/start", methods=["POST"])
 def start_scan():
-    data = request.get_json(silent=True) or {}
+    data         = request.get_json(silent=True) or {}
     scan_id      = data.get("scan_id")
-    project_path = data.get("project_path")
+    scan_type    = data.get("scan_type", "code")   # "code" | "url"
+    project_path = data.get("project_path", "")
+    target_url   = data.get("target_url", "")
 
-    if not scan_id or not project_path:
-        return jsonify({"error": "scan_id and project_path required"}), 400
+    if not scan_id:
+        return jsonify({"error": "scan_id required"}), 400
+    if scan_type == "code" and not project_path:
+        return jsonify({"error": "project_path required for code scans"}), 400
+    if scan_type == "url" and not target_url:
+        return jsonify({"error": "target_url required for URL scans"}), 400
 
-    # Run the pipeline in a background thread — return 202 immediately
     threading.Thread(
         target=run_scan_pipeline,
-        args=(scan_id, project_path),
+        args=(scan_id, project_path, scan_type, target_url),
         daemon=True,
     ).start()
 
@@ -41,5 +46,5 @@ def start_scan():
 
 
 if __name__ == "__main__":
-    start_monitor()   # background health-check loop
+    start_monitor()
     app.run(host="0.0.0.0", port=8000, threaded=True)

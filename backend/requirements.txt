@@ -1,9 +1,9 @@
-# Backend — API Gateway only
 flask
 flask-jwt-extended
 flask-cors
 flask-socketio
 flask-pymongo
+flask-limiter
 pymongo
 redis
 gevent

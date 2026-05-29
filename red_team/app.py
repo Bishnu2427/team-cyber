@@ -13,7 +13,7 @@ CORS(app)
 
 @app.route("/health", methods=["GET"])
 def health():
-    return jsonify({"status": "ok", "service": "red-team", "phase": 1}), 200
+    return jsonify({"status": "ok", "service": "red-team", "phase": 2}), 200
 
 
 @app.route("/analyze", methods=["POST"])
@@ -22,8 +22,13 @@ def analyze():
     scan_id      = data.get("scan_id", "")
     project_path = data.get("project_path", "")
     tech_stack   = data.get("tech_stack", [])
+    target_url   = data.get("target_url", "")
+    scan_type    = data.get("scan_type", "code")
 
-    result = run_red_team(scan_id, project_path, tech_stack)
+    result = run_red_team(
+        scan_id, project_path, tech_stack,
+        target_url=target_url, scan_type=scan_type,
+    )
     return jsonify(result), 200
 
 
