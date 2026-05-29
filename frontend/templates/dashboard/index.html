@@ -2,15 +2,24 @@
 {% block title %}Dashboard — Team Cyber{% endblock %}
 
 {% block content %}
-<div class="page-header">
+<div class="page-header slide-up">
   <div>
     <h2 class="page-title">Security Dashboard</h2>
-    <p class="page-sub" id="welcome-msg">Welcome back</p>
+    <p class="page-sub" id="welcome-msg">Loading…</p>
   </div>
-  <a href="/scans/new" class="btn btn-primary">+ New Scan</a>
+  <div class="header-actions">
+    <button class="btn btn-ghost btn-sm" onclick="loadScans()" title="Refresh">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+      Refresh
+    </button>
+    <a href="/scans/new" class="btn btn-primary">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      New Scan
+    </a>
+  </div>
 </div>
 
-<!-- Stats row -->
+<!-- Severity Stats -->
 <div class="stats-grid" id="stats-grid">
   <div class="stat-card critical">
     <div class="stat-label">Critical</div>
@@ -34,15 +43,27 @@
   </div>
 </div>
 
-<!-- Recent scans table -->
+<!-- Scans Table -->
 <div class="section-card">
   <div class="section-header">
-    <h3>Recent Scans</h3>
-    <button class="btn btn-ghost btn-sm" onclick="loadScans()">↻ Refresh</button>
+    <h3>
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:6px;vertical-align:middle"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      Recent Scans
+    </h3>
+    <span id="scan-count" class="tag" style="display:none"></span>
   </div>
 
-  <div id="scan-loading" class="loading-row">Loading scans…</div>
-  <div id="scan-empty"   class="empty-row hidden">No scans yet. <a href="/scans/new">Start your first scan →</a></div>
+  <div id="scan-loading" class="loading-row">
+    <span class="loading-spinner"></span>
+    Loading scans…
+  </div>
+
+  <div id="scan-empty" class="empty-state hidden">
+    <div class="empty-icon">🔍</div>
+    <h3>No scans yet</h3>
+    <p>Upload a ZIP or point to a GitHub repo to run your first security scan.</p>
+    <a href="/scans/new" class="btn btn-primary">Start your first scan →</a>
+  </div>
 
   <table class="data-table hidden" id="scans-table">
     <thead>
@@ -66,14 +87,14 @@
 {% block scripts %}
 <script>
 requireAuth();
-
-const user = localStorage.getItem("tc_user") || "analyst";
-document.getElementById("welcome-msg").textContent = `Welcome back, ${user}`;
+document.getElementById("welcome-msg").textContent =
+  `Welcome back, ${localStorage.getItem("tc_user") || "analyst"}`;
 
 async function loadScans() {
   document.getElementById("scan-loading").classList.remove("hidden");
   document.getElementById("scans-table").classList.add("hidden");
   document.getElementById("scan-empty").classList.add("hidden");
+  document.getElementById("scan-count").style.display = "none";
 
   const scans = await apiGet("/api/scans/");
   document.getElementById("scan-loading").classList.add("hidden");
@@ -84,43 +105,57 @@ async function loadScans() {
   }
 
   // Aggregate stats
-  let totals = { critical: 0, high: 0, medium: 0, low: 0 };
+  let t = { critical: 0, high: 0, medium: 0, low: 0 };
   scans.forEach(s => {
     const c = s.findings_count || {};
-    totals.critical += c.critical || 0;
-    totals.high     += c.high     || 0;
-    totals.medium   += c.medium   || 0;
-    totals.low      += c.low      || 0;
+    t.critical += c.critical || 0;
+    t.high     += c.high     || 0;
+    t.medium   += c.medium   || 0;
+    t.low      += c.low      || 0;
   });
-  document.getElementById("stat-critical").textContent = totals.critical;
-  document.getElementById("stat-high").textContent     = totals.high;
-  document.getElementById("stat-medium").textContent   = totals.medium;
-  document.getElementById("stat-low").textContent      = totals.low;
-  document.getElementById("stat-scans").textContent    = scans.length;
+
+  // Animate counters
+  [["stat-critical", t.critical], ["stat-high", t.high],
+   ["stat-medium", t.medium], ["stat-low", t.low],
+   ["stat-scans", scans.length]].forEach(([id, val]) => {
+    animateCounter(document.getElementById(id), val);
+  });
+
+  const countEl = document.getElementById("scan-count");
+  countEl.textContent = `${scans.length} scan${scans.length !== 1 ? "s" : ""}`;
+  countEl.style.display = "";
 
   const tbody = document.getElementById("scans-tbody");
   tbody.innerHTML = "";
-  scans.forEach(s => {
+  scans.forEach((s, i) => {
     const c    = s.findings_count || {};
-    const date = new Date(s.created_at).toLocaleDateString();
-    tbody.innerHTML += `
-      <tr>
-        <td><a href="/scans/${s._id}" class="link">${s.project_name}</a></td>
-        <td><span class="badge badge-info">${s.source_type.toUpperCase()}</span></td>
-        <td><span class="badge badge-${statusColor(s.status)}">${s.status}</span></td>
-        <td class="sev-critical">${c.critical || 0}</td>
-        <td class="sev-high">${c.high || 0}</td>
-        <td class="sev-medium">${c.medium || 0}</td>
-        <td class="sev-low">${c.low || 0}</td>
-        <td class="text-muted">${date}</td>
-        <td><a href="/scans/${s._id}" class="btn btn-ghost btn-sm">View →</a></td>
-      </tr>`;
+    const date = new Date(s.created_at).toLocaleDateString("en-GB", { day:"2-digit", month:"short", year:"numeric" });
+    const row  = document.createElement("tr");
+    row.style.animationDelay = `${i * 40}ms`;
+    row.className = "slide-up";
+    row.innerHTML = `
+      <td>
+        <a href="/scans/${s._id}" class="link" style="display:flex;align-items:center;gap:8px;">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;opacity:.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          ${s.project_name}
+        </a>
+      </td>
+      <td><span class="tag">${s.source_type.toUpperCase()}</span></td>
+      <td>
+        <span class="badge badge-${statusColor(s.status)}" style="display:inline-flex;gap:5px;align-items:center">
+          ${statusDot(s.status)}
+          ${s.status}
+        </span>
+      </td>
+      <td class="sev-critical">${c.critical || 0}</td>
+      <td class="sev-high">${c.high || 0}</td>
+      <td class="sev-medium">${c.medium || 0}</td>
+      <td class="sev-low">${c.low || 0}</td>
+      <td class="text-muted" style="font-family:var(--mono);font-size:12px">${date}</td>
+      <td><a href="/scans/${s._id}" class="btn btn-ghost btn-sm">View →</a></td>`;
+    tbody.appendChild(row);
   });
   document.getElementById("scans-table").classList.remove("hidden");
-}
-
-function statusColor(s) {
-  return { completed: "success", running: "warning", failed: "error", queued: "info" }[s] || "info";
 }
 
 loadScans();

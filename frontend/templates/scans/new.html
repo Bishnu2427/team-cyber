@@ -2,10 +2,10 @@
 {% block title %}New Scan — Team Cyber{% endblock %}
 
 {% block content %}
-<div class="page-header">
+<div class="page-header slide-up">
   <div>
     <h2 class="page-title">New Security Scan</h2>
-    <p class="page-sub">Upload a ZIP file or provide a GitHub repository URL</p>
+    <p class="page-sub">Upload source code or point to a GitHub repository</p>
   </div>
   <a href="/dashboard" class="btn btn-ghost">← Back</a>
 </div>
@@ -13,55 +13,117 @@
 <div class="scan-form-grid">
 
   <!-- ZIP Upload -->
-  <div class="section-card">
-    <div class="section-header">
-      <h3>📦 Upload ZIP Archive</h3>
+  <div class="form-card slide-up" style="animation-delay:.05s">
+    <div class="form-card-title">
+      <span style="font-size:20px">📦</span>
+      Upload ZIP Archive
     </div>
+
     <div id="zip-error" class="alert alert-error hidden"></div>
+
     <form id="zip-form" enctype="multipart/form-data">
       <div class="form-group">
-        <label>Project Name</label>
+        <label>Project Name <span class="hint">(optional)</span></label>
         <input type="text" id="zip-name" placeholder="my-app" />
       </div>
+
       <div class="form-group">
         <label>ZIP File</label>
         <div class="file-drop" id="file-drop">
           <input type="file" id="zip-file" accept=".zip" class="file-input" />
           <div class="file-drop-label">
             <span class="drop-icon">⬆</span>
-            <span id="file-label">Drag & drop or click to select .zip</span>
+            <div id="file-label" style="color:var(--text-muted);font-size:13px">
+              Drag &amp; drop or click to select <strong>.zip</strong>
+            </div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:6px">Max 100 MB</div>
           </div>
         </div>
       </div>
+
       <button type="submit" class="btn btn-primary btn-full" id="zip-btn">
-        <span class="btn-text">Start Scan</span>
-        <span class="btn-loader hidden">Uploading…</span>
+        <span class="btn-text">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Start Scan
+        </span>
+        <span class="btn-loader hidden"><span class="spinner"></span>Uploading…</span>
       </button>
     </form>
   </div>
 
   <!-- GitHub -->
-  <div class="section-card">
-    <div class="section-header">
-      <h3>🐙 GitHub Repository</h3>
+  <div class="form-card slide-up" style="animation-delay:.1s">
+    <div class="form-card-title">
+      <span style="font-size:20px">🐙</span>
+      GitHub Repository
     </div>
+
     <div id="gh-error" class="alert alert-error hidden"></div>
+
     <form id="gh-form">
       <div class="form-group">
-        <label>Project Name</label>
+        <label>Project Name <span class="hint">(optional)</span></label>
         <input type="text" id="gh-name" placeholder="my-repo" />
       </div>
+
       <div class="form-group">
-        <label>GitHub URL</label>
-        <input type="url" id="gh-url" placeholder="https://github.com/owner/repo" required />
+        <label>Repository URL</label>
+        <input type="url" id="gh-url"
+               placeholder="https://github.com/owner/repo" required />
       </div>
+
+      <div class="alert alert-info" style="font-size:12px;margin-bottom:1rem">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Public repositories only. The repo is cloned at depth 1.
+      </div>
+
       <button type="submit" class="btn btn-primary btn-full" id="gh-btn">
-        <span class="btn-text">Start Scan</span>
-        <span class="btn-loader hidden">Cloning…</span>
+        <span class="btn-text">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Start Scan
+        </span>
+        <span class="btn-loader hidden"><span class="spinner"></span>Cloning…</span>
       </button>
     </form>
   </div>
 
+</div>
+
+<!-- What happens next -->
+<div class="section-card slide-up" style="animation-delay:.15s">
+  <div class="section-header">
+    <h3>What happens when you scan?</h3>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;">
+    <div style="display:flex;gap:10px;align-items:flex-start">
+      <span style="font-size:22px;flex-shrink:0">🔬</span>
+      <div>
+        <div style="font-weight:600;font-size:13px;margin-bottom:3px">SAST Analysis</div>
+        <div style="font-size:12px;color:var(--text-muted)">Semgrep + Bandit scan every file for injection, secrets, and insecure patterns</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:flex-start">
+      <span style="font-size:22px;flex-shrink:0">📦</span>
+      <div>
+        <div style="font-weight:600;font-size:13px;margin-bottom:3px">Dependency CVEs</div>
+        <div style="font-size:12px;color:var(--text-muted)">Trivy + pip-audit map every package to known CVEs</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:flex-start">
+      <span style="font-size:22px;flex-shrink:0">🤖</span>
+      <div>
+        <div style="font-weight:600;font-size:13px;margin-bottom:3px">AI Enrichment</div>
+        <div style="font-size:12px;color:var(--text-muted)">Groq Llama3-70B explains root cause and generates fixes</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:flex-start">
+      <span style="font-size:22px;flex-shrink:0">✅</span>
+      <div>
+        <div style="font-weight:600;font-size:13px;margin-bottom:3px">Verification</div>
+        <div style="font-size:12px;color:var(--text-muted)">LLM peer-review filters false positives and scores confidence</div>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}
 
@@ -69,17 +131,37 @@
 <script>
 requireAuth();
 
-// File drop UI
 const fileInput = document.getElementById("zip-file");
 const fileLabel = document.getElementById("file-label");
+const fileDrop  = document.getElementById("file-drop");
+
 fileInput.addEventListener("change", () => {
-  fileLabel.textContent = fileInput.files[0]?.name || "No file selected";
+  const f = fileInput.files[0];
+  if (f) {
+    fileLabel.innerHTML = `<strong style="color:var(--cyan)">${f.name}</strong> <span style="color:var(--text-muted)">(${(f.size/1024/1024).toFixed(1)} MB)</span>`;
+    fileDrop.style.borderColor = "var(--cyan)";
+  }
 });
 
-// ZIP upload
+// Drag & drop
+fileDrop.addEventListener("dragover", e => { e.preventDefault(); fileDrop.classList.add("drag-over"); });
+fileDrop.addEventListener("dragleave", () => fileDrop.classList.remove("drag-over"));
+fileDrop.addEventListener("drop", e => {
+  e.preventDefault();
+  fileDrop.classList.remove("drag-over");
+  const file = e.dataTransfer.files[0];
+  if (file && file.name.endsWith(".zip")) {
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    fileInput.files = dt.files;
+    fileLabel.innerHTML = `<strong style="color:var(--cyan)">${file.name}</strong>`;
+    fileDrop.style.borderColor = "var(--cyan)";
+  }
+});
+
 document.getElementById("zip-form").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const btn  = document.getElementById("zip-btn");
+  const btn   = document.getElementById("zip-btn");
   const errEl = document.getElementById("zip-error");
   const file  = fileInput.files[0];
   if (!file) { errEl.textContent = "Please select a ZIP file"; errEl.classList.remove("hidden"); return; }
@@ -99,7 +181,8 @@ document.getElementById("zip-form").addEventListener("submit", async (e) => {
   const data = await res.json();
 
   if (res.ok) {
-    window.location.href = `/scans/${data.scan_id}`;
+    showToast("Scan started! Redirecting…", "success");
+    setTimeout(() => window.location.href = `/scans/${data.scan_id}`, 600);
   } else {
     errEl.textContent = data.error || "Upload failed";
     errEl.classList.remove("hidden");
@@ -107,7 +190,6 @@ document.getElementById("zip-form").addEventListener("submit", async (e) => {
   }
 });
 
-// GitHub scan
 document.getElementById("gh-form").addEventListener("submit", async (e) => {
   e.preventDefault();
   const btn   = document.getElementById("gh-btn");
@@ -122,9 +204,10 @@ document.getElementById("gh-form").addEventListener("submit", async (e) => {
   const data = await res.json();
 
   if (res.ok) {
-    window.location.href = `/scans/${data.scan_id}`;
+    showToast("Cloning repo and starting scan…", "success");
+    setTimeout(() => window.location.href = `/scans/${data.scan_id}`, 600);
   } else {
-    errEl.textContent = data.error || "Scan failed";
+    errEl.textContent = data.error || "Failed to start scan";
     errEl.classList.remove("hidden");
     setLoading(btn, false);
   }

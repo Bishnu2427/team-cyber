@@ -13,12 +13,21 @@
 <nav class="navbar">
   <a class="nav-brand" href="/dashboard">
     <span class="brand-hex">⬡</span>
-    <span>TEAM<strong>CYBER</strong></span>
+    TEAM<strong>CYBER</strong>
   </a>
+
   <div class="nav-links">
-    <a href="/dashboard" class="nav-link">Dashboard</a>
-    <a href="/scans/new" class="nav-link btn-outline">+ New Scan</a>
-    <button class="nav-link btn-ghost" onclick="logout()">Logout</button>
+    <a href="/dashboard" class="nav-link">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </a>
+    <a href="/scans/new" class="nav-link btn-outline" style="padding:6px 14px;">
+      + New Scan
+    </a>
+    <button class="nav-link" onclick="logout()" style="margin-left:4px;">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Logout
+    </button>
   </div>
 </nav>
 {% endblock %}
@@ -26,6 +35,8 @@
 <main class="page-content">
   {% block content %}{% endblock %}
 </main>
+
+<div id="toast-container" class="toast-container"></div>
 
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 {% block scripts %}{% endblock %}

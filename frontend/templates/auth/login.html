@@ -1,36 +1,56 @@
 {% extends "base.html" %}
 {% block navbar %}{% endblock %}
-{% block title %}Login — Team Cyber{% endblock %}
+{% block title %}Sign In — Team Cyber{% endblock %}
 
 {% block content %}
 <div class="auth-wrapper">
   <div class="auth-card">
+
     <div class="auth-logo">
       <span class="brand-hex lg">⬡</span>
       <h1>TEAM<strong>CYBER</strong></h1>
-      <p class="auth-tagline">Autonomous Cybersecurity Platform</p>
+      <p class="auth-tagline">Autonomous Security Platform</p>
     </div>
 
     <div id="auth-error" class="alert alert-error hidden"></div>
 
-    <form id="login-form" class="auth-form">
+    <form id="login-form" class="auth-form" autocomplete="off">
       <div class="form-group">
-        <label for="email">Email</label>
-        <input type="email" id="email" placeholder="analyst@company.com" required />
+        <label>
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
+          Email Address
+        </label>
+        <input type="email" id="email" placeholder="analyst@company.com" required autocomplete="email" />
       </div>
+
       <div class="form-group">
-        <label for="password">Password</label>
-        <input type="password" id="password" placeholder="••••••••" required />
+        <label>
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Password
+        </label>
+        <input type="password" id="password" placeholder="••••••••" required autocomplete="current-password" />
       </div>
-      <button type="submit" class="btn btn-primary btn-full" id="login-btn">
+
+      <button type="submit" class="btn btn-primary btn-full btn-lg" id="login-btn" style="margin-top:.5rem">
         <span class="btn-text">Sign In</span>
-        <span class="btn-loader hidden">Authenticating…</span>
+        <span class="btn-loader hidden">
+          <span class="spinner"></span>
+          Authenticating…
+        </span>
       </button>
     </form>
 
+    <div class="auth-divider">or</div>
+
     <p class="auth-footer">
-      No account? <a href="/register">Register</a>
+      No account yet? <a href="/register">Create one →</a>
     </p>
+
+    <div style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--border);display:flex;justify-content:center;gap:20px;">
+      <span class="tag">🛡 SAST</span>
+      <span class="tag">🔍 CVE Scan</span>
+      <span class="tag">🤖 AI Analysis</span>
+    </div>
   </div>
 </div>
 {% endblock %}
@@ -39,31 +59,33 @@
 <script>
 document.getElementById("login-form").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const btn    = document.getElementById("login-btn");
-  const errEl  = document.getElementById("auth-error");
-  const email  = document.getElementById("email").value;
-  const pass   = document.getElementById("password").value;
-
+  const btn   = document.getElementById("login-btn");
+  const errEl = document.getElementById("auth-error");
   btn.querySelector(".btn-text").classList.add("hidden");
   btn.querySelector(".btn-loader").classList.remove("hidden");
+  btn.disabled = true;
   errEl.classList.add("hidden");
 
   const res  = await fetch("/api/auth/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password: pass }),
+    body: JSON.stringify({
+      email: document.getElementById("email").value,
+      password: document.getElementById("password").value,
+    }),
   });
   const data = await res.json();
 
   if (res.ok) {
     localStorage.setItem("tc_token", data.token);
-    localStorage.setItem("tc_user",  data.username);
+    localStorage.setItem("tc_user", data.username);
     window.location.href = "/dashboard";
   } else {
-    errEl.textContent = data.error || "Login failed";
+    errEl.textContent = data.error || "Invalid credentials";
     errEl.classList.remove("hidden");
     btn.querySelector(".btn-text").classList.remove("hidden");
     btn.querySelector(".btn-loader").classList.add("hidden");
+    btn.disabled = false;
   }
 });
 </script>

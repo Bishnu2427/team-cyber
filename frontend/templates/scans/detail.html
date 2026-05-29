@@ -2,44 +2,71 @@
 {% block title %}Scan Detail — Team Cyber{% endblock %}
 
 {% block content %}
-<div class="page-header">
-  <div>
+<div class="page-header slide-up">
+  <div style="min-width:0">
     <h2 class="page-title" id="scan-title">Loading scan…</h2>
     <p class="page-sub" id="scan-meta"></p>
   </div>
   <div class="header-actions">
-    <button class="btn btn-outline" id="pdf-btn" onclick="downloadPDF()" style="display:none">
-      ⬇ Download PDF Report
+    <button class="btn btn-outline hidden" id="pdf-btn" onclick="downloadPDF()">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Download PDF
     </button>
     <a href="/dashboard" class="btn btn-ghost">← Dashboard</a>
   </div>
 </div>
 
-<!-- Progress bar (visible while scan runs) -->
-<div id="progress-section" class="section-card hidden">
+<!-- Active scan progress -->
+<div id="progress-section" class="section-card scan-active hidden">
   <div class="section-header">
-    <h3>🔄 Scan In Progress</h3>
+    <h3 style="display:flex;align-items:center;gap:8px">
+      <span class="status-dot running"></span>
+      Scan In Progress
+    </h3>
     <span id="progress-pct" class="badge badge-warning">0%</span>
   </div>
   <div class="progress-bar-track">
     <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
   </div>
-  <p class="progress-msg" id="progress-msg">Initialising…</p>
+  <p class="progress-msg" id="progress-msg">Initialising agents…</p>
+
+  <!-- Agent status indicators -->
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:1rem">
+    <span class="tag" id="agent-detect">🔭 Detecting stack</span>
+    <span class="tag" id="agent-blue">🛡 Blue Team</span>
+    <span class="tag" id="agent-red">⚔ Red Team</span>
+    <span class="tag" id="agent-verify">✅ Verifier</span>
+  </div>
 </div>
 
-<!-- Findings summary -->
-<div class="stats-grid" id="sev-stats" style="display:none">
+<!-- Severity summary -->
+<div class="stats-grid hidden" id="sev-stats">
   <div class="stat-card critical"><div class="stat-label">Critical</div><div class="stat-value" id="fc-critical">0</div></div>
   <div class="stat-card high">   <div class="stat-label">High</div>    <div class="stat-value" id="fc-high">0</div></div>
   <div class="stat-card medium"> <div class="stat-label">Medium</div>  <div class="stat-value" id="fc-medium">0</div></div>
   <div class="stat-card low">    <div class="stat-label">Low</div>     <div class="stat-value" id="fc-low">0</div></div>
-  <div class="stat-card info">   <div class="stat-label">OWASP Score</div><div class="stat-value" id="fc-owasp">—</div></div>
+  <div class="stat-card info">
+    <div class="stat-label">OWASP Score</div>
+    <div class="stat-value" id="fc-owasp" style="font-size:24px">—</div>
+  </div>
 </div>
 
-<!-- Findings table -->
-<div class="section-card" id="findings-section" style="display:none">
+<!-- Compliance row -->
+<div class="section-card hidden" id="compliance-section">
   <div class="section-header">
-    <h3>Vulnerability Findings</h3>
+    <h3>OWASP Top 10 Compliance</h3>
+    <div id="score-ring-wrap"></div>
+  </div>
+  <div class="compliance-grid" id="compliance-grid"></div>
+</div>
+
+<!-- Findings -->
+<div class="section-card hidden" id="findings-section">
+  <div class="section-header">
+    <h3>
+      Vulnerability Findings
+      <span class="tag" id="findings-count" style="margin-left:8px"></span>
+    </h3>
     <div class="filter-row">
       <select id="sev-filter" onchange="filterFindings()">
         <option value="">All Severities</option>
@@ -62,13 +89,15 @@
 
 <!-- Error state -->
 <div class="section-card hidden" id="error-section">
-  <div class="empty-row">
-    <span class="text-danger">✖ Scan failed.</span>
-    <span id="error-msg" class="text-muted"></span>
+  <div class="empty-state">
+    <div class="empty-icon">⚠</div>
+    <h3 style="color:var(--critical)">Scan Failed</h3>
+    <p id="error-msg"></p>
+    <a href="/scans/new" class="btn btn-outline" style="margin-top:.5rem">Try again →</a>
   </div>
 </div>
 
-<!-- Finding detail modal -->
+<!-- Finding Detail Modal -->
 <div class="modal-overlay hidden" id="modal-overlay" onclick="closeModal()">
   <div class="modal-card" onclick="event.stopPropagation()">
     <button class="modal-close" onclick="closeModal()">✕</button>
@@ -80,19 +109,25 @@
 {% block scripts %}
 <script>
 requireAuth();
-
 const SCAN_ID = "{{ scan_id }}";
 let allFindings = [];
 let socket;
 
+// ── Load socket.io then initialise ───────────────────────────────
+const sio = document.createElement("script");
+sio.src = "https://cdn.socket.io/4.7.5/socket.io.min.js";
+sio.onload = init;
+document.head.appendChild(sio);
+
 async function init() {
   const data = await apiGet(`/api/scans/${SCAN_ID}`);
   if (!data) return;
-
   const scan = data.scan;
+
   document.getElementById("scan-title").textContent = scan.project_name;
-  document.getElementById("scan-meta").textContent  =
-    `${scan.source_type.toUpperCase()} • ${new Date(scan.created_at).toLocaleString()}`;
+  document.getElementById("scan-meta").innerHTML =
+    `<span class="tag" style="margin-right:6px">${scan.source_type.toUpperCase()}</span>` +
+    new Date(scan.created_at).toLocaleString();
 
   if (scan.status === "completed") {
     renderCompleted(scan, data.findings);
@@ -100,31 +135,32 @@ async function init() {
     document.getElementById("error-section").classList.remove("hidden");
     document.getElementById("error-msg").textContent = scan.error || "Unknown error";
   } else {
-    // running or queued — show progress and open socket
     document.getElementById("progress-section").classList.remove("hidden");
     connectSocket();
   }
 }
 
 function connectSocket() {
-  socket = io("/", { auth: { token: localStorage.getItem("tc_token") } });
-
-  socket.on("scan_progress", (d) => {
+  socket = io("/");
+  socket.on("scan_progress", d => {
     if (d.scan_id !== SCAN_ID) return;
     const pct = d.progress || 0;
     document.getElementById("progress-fill").style.width = pct + "%";
     document.getElementById("progress-pct").textContent  = pct + "%";
     document.getElementById("progress-msg").textContent  = d.message || "";
+    // Update agent indicators
+    if (pct >= 8)  highlightAgent("agent-detect", true);
+    if (pct >= 15) highlightAgent("agent-blue", true);
+    if (pct >= 15) highlightAgent("agent-red", true);
+    if (pct >= 65) highlightAgent("agent-verify", true);
   });
-
-  socket.on("scan_complete", async (d) => {
+  socket.on("scan_complete", async d => {
     if (d.scan_id !== SCAN_ID) return;
     socket.disconnect();
     const data = await apiGet(`/api/scans/${SCAN_ID}`);
     if (data) renderCompleted(data.scan, data.findings);
   });
-
-  socket.on("scan_error", (d) => {
+  socket.on("scan_error", d => {
     if (d.scan_id !== SCAN_ID) return;
     document.getElementById("progress-section").classList.add("hidden");
     document.getElementById("error-section").classList.remove("hidden");
@@ -132,29 +168,88 @@ function connectSocket() {
   });
 }
 
+function highlightAgent(id, done) {
+  const el = document.getElementById(id);
+  if (el && !el.dataset.done) {
+    el.style.borderColor = "var(--cyan)";
+    el.style.color = "var(--cyan)";
+    el.dataset.done = "1";
+  }
+}
+
 function renderCompleted(scan, findings) {
   document.getElementById("progress-section").classList.add("hidden");
-  document.getElementById("sev-stats").style.display = "";
-  document.getElementById("findings-section").style.display = "";
-  document.getElementById("pdf-btn").style.display = "";
+  document.getElementById("sev-stats").classList.remove("hidden");
+  document.getElementById("findings-section").classList.remove("hidden");
+  document.getElementById("pdf-btn").classList.remove("hidden");
 
   const c = scan.findings_count || {};
-  document.getElementById("fc-critical").textContent = c.critical || 0;
-  document.getElementById("fc-high").textContent     = c.high     || 0;
-  document.getElementById("fc-medium").textContent   = c.medium   || 0;
-  document.getElementById("fc-low").textContent      = c.low      || 0;
+  [["fc-critical", c.critical||0], ["fc-high", c.high||0],
+   ["fc-medium", c.medium||0], ["fc-low", c.low||0]].forEach(([id, v]) => {
+    animateCounter(document.getElementById(id), v);
+  });
 
-  const score = scan.compliance_results?.score;
-  document.getElementById("fc-owasp").textContent = score != null ? score + "%" : "—";
+  const comp  = scan.compliance_results || {};
+  const score = comp.score ?? "—";
+  document.getElementById("fc-owasp").textContent = score !== "—" ? score + "%" : "—";
+
+  // Compliance section
+  if (comp.categories) {
+    document.getElementById("compliance-section").classList.remove("hidden");
+    renderCompliance(comp);
+  }
 
   allFindings = findings;
   renderFindings(findings);
+
+  document.getElementById("findings-count").textContent =
+    `${findings.length} finding${findings.length !== 1 ? "s" : ""}`;
+
+  showToast("Scan complete!", "success");
+}
+
+function renderCompliance(comp) {
+  // Score ring
+  const score = comp.score || 0;
+  const r = 32, circ = 2 * Math.PI * r;
+  const offset = circ - (score / 100) * circ;
+  const color = score >= 70 ? "var(--green-dim)" : score >= 40 ? "var(--medium)" : "var(--critical)";
+  document.getElementById("score-ring-wrap").innerHTML = `
+    <div class="score-ring">
+      <svg viewBox="0 0 80 80" width="80" height="80">
+        <circle class="track" cx="40" cy="40" r="${r}"/>
+        <circle class="fill" cx="40" cy="40" r="${r}"
+          stroke="${color}"
+          stroke-dasharray="${circ}"
+          stroke-dashoffset="${offset}"/>
+      </svg>
+      <div class="label" style="color:${color}">
+        ${score}%
+        <span class="sublabel">OWASP</span>
+      </div>
+    </div>`;
+
+  // Categories
+  const grid = document.getElementById("compliance-grid");
+  grid.innerHTML = "";
+  Object.entries(comp.categories || {}).forEach(([cat, info]) => {
+    const pass = info.status === "pass";
+    const el = document.createElement("div");
+    el.className = `compliance-item ${info.status}`;
+    el.innerHTML = `
+      <span class="compliance-check">${pass ? "✅" : "❌"}</span>
+      <div>
+        <div style="font-weight:600;font-size:12px;color:${pass ? "var(--green-dim)" : "var(--critical)"}">${cat}</div>
+        <div style="font-size:11px;color:var(--text-muted)">${info.name}</div>
+      </div>`;
+    grid.appendChild(el);
+  });
 }
 
 function renderFindings(findings) {
   const el = document.getElementById("findings-list");
   if (!findings.length) {
-    el.innerHTML = '<div class="empty-row">No findings for this filter.</div>';
+    el.innerHTML = `<div class="empty-state" style="padding:2rem"><div class="empty-icon">🎉</div><h3>No findings for this filter</h3></div>`;
     return;
   }
   el.innerHTML = findings.map((f, i) => `
@@ -164,44 +259,66 @@ function renderFindings(findings) {
         <span class="finding-name">${f.vulnerability}</span>
         <span class="badge badge-tool">${f.tool}</span>
         ${f.cve ? `<span class="badge badge-info">${f.cve}</span>` : ""}
+        ${f.owasp ? `<span class="tag" style="font-size:10px">${f.owasp.split(":")[0]}</span>` : ""}
       </div>
       <div class="finding-meta">
-        <span class="text-muted">${f.location || ""}${f.line ? `:${f.line}` : ""}</span>
+        <span>${f.location || ""}${f.line ? ":" + f.line : ""}</span>
         <span class="conf-pill">${Math.round((f.confidence||0)*100)}% confidence</span>
       </div>
-    </div>
-  `).join("");
+    </div>`).join("");
 }
 
 function filterFindings() {
   const sev  = document.getElementById("sev-filter").value;
   const tool = document.getElementById("tool-filter").value;
-  const filtered = allFindings.filter(f =>
+  renderFindings(allFindings.filter(f =>
     (!sev  || f.severity === sev) &&
     (!tool || f.tool === tool)
-  );
-  renderFindings(filtered);
+  ));
 }
 
 function openFinding(idx) {
-  const f = allFindings[idx];
+  const f    = allFindings[idx];
+  const conf = Math.round((f.confidence || 0) * 100);
+  const confColor = conf >= 80 ? "var(--green-dim)" : conf >= 60 ? "var(--medium)" : "var(--critical)";
+
   document.getElementById("modal-content").innerHTML = `
     <h3 class="modal-title">${f.vulnerability}</h3>
     <div class="modal-badges">
       <span class="badge badge-${f.severity}">${f.severity.toUpperCase()}</span>
       <span class="badge badge-tool">${f.tool}</span>
-      ${f.owasp ? `<span class="badge badge-info">${f.owasp}</span>` : ""}
-      ${f.cve   ? `<span class="badge badge-info">${f.cve}</span>`   : ""}
+      ${f.owasp  ? `<span class="badge badge-info" style="font-size:10px">${f.owasp}</span>` : ""}
+      ${f.cve    ? `<span class="badge badge-info">${f.cve}</span>` : ""}
+      ${f.verified ? `<span class="badge badge-success">✓ Verified</span>` : ""}
     </div>
-    <div class="modal-grid">
-      <div class="modal-row"><span>Location</span><code>${f.location || "—"}${f.line ? `:${f.line}` : ""}</code></div>
-      <div class="modal-row"><span>Confidence</span><span>${Math.round((f.confidence||0)*100)}%</span></div>
+
+    <div class="modal-meta-grid">
+      <div class="modal-meta-item">
+        <div class="label">Location</div>
+        <div class="value">${f.location || "—"}${f.line ? ":" + f.line : ""}</div>
+      </div>
+      <div class="modal-meta-item">
+        <div class="label">Confidence</div>
+        <div class="value" style="color:${confColor}">
+          <div class="conf-bar-wrap">
+            <div class="conf-bar-track">
+              <div class="conf-bar-fill" style="width:${conf}%;background:${confColor}"></div>
+            </div>
+            ${conf}%
+          </div>
+        </div>
+      </div>
     </div>
+
     ${f.root_cause ? `<div class="modal-section"><h4>Root Cause</h4><p>${f.root_cause}</p></div>` : ""}
     ${f.impact     ? `<div class="modal-section"><h4>Impact</h4><p>${f.impact}</p></div>` : ""}
-    ${f.fix        ? `<div class="modal-section modal-fix"><h4>Recommended Fix</h4><p>${f.fix}</p></div>` : ""}
-    ${f.code_snippet ? `<div class="modal-section"><h4>Code</h4><pre class="code-block">${escHtml(f.code_snippet)}</pre></div>` : ""}
-  `;
+    ${f.fix        ? `<div class="modal-section modal-fix"><h4>✦ Recommended Fix</h4><p>${f.fix}</p></div>` : ""}
+    ${f.code_snippet ? `
+      <div class="modal-section">
+        <h4>Code Snippet</h4>
+        <pre class="code-block">${escHtml(f.code_snippet.slice(0,600))}</pre>
+      </div>` : ""}`;
+
   document.getElementById("modal-overlay").classList.remove("hidden");
 }
 
@@ -211,36 +328,34 @@ function closeModal() {
 
 async function downloadPDF() {
   const btn = document.getElementById("pdf-btn");
-  btn.textContent = "⏳ Generating…";
+  btn.innerHTML = `<span class="spinner" style="border-top-color:#000"></span> Generating…`;
   btn.disabled = true;
   try {
     const resp = await fetch(`/api/reports/${SCAN_ID}/pdf`, {
       headers: { "Authorization": `Bearer ${localStorage.getItem("tc_token")}` }
     });
-    if (!resp.ok) { alert("Report generation failed. Is the reporter service running?"); return; }
+    if (!resp.ok) { showToast("Report generation failed", "error"); return; }
     const blob = await resp.blob();
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement("a");
     a.href     = url;
-    a.download = `teamcyber_report_${SCAN_ID.slice(0, 8)}.pdf`;
+    a.download = `teamcyber_${SCAN_ID.slice(0,8)}.pdf`;
     a.click();
     URL.revokeObjectURL(url);
-  } catch (e) {
-    alert("Error downloading report: " + e.message);
+    showToast("Report downloaded!", "success");
+  } catch(e) {
+    showToast("Error: " + e.message, "error");
   } finally {
-    btn.textContent = "⬇ Download PDF Report";
+    btn.innerHTML = `<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download PDF`;
     btn.disabled = false;
   }
 }
 
 function escHtml(s) {
-  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
 }
 
-// Load socket.io from CDN for real-time updates
-const sioScript = document.createElement("script");
-sioScript.src = "https://cdn.socket.io/4.7.5/socket.io.min.js";
-sioScript.onload = init;
-document.head.appendChild(sioScript);
+// Close modal on Escape
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
 </script>
 {% endblock %}
