@@ -1,77 +1,271 @@
-{% extends "base.html" %}
-{% block navbar %}{% endblock %}
-{% block title %}Register — Team Cyber{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Create Account — Team Cyber</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}"/>
+  <style>
+    body { overflow: hidden; }
+    .auth-root {
+      display: grid; grid-template-columns: 1fr 460px; height: 100vh; position: relative;
+    }
+    @media (max-width: 900px) {
+      .auth-root { grid-template-columns: 1fr; }
+      .auth-visual { display: none; }
+      body { overflow: auto; }
+    }
+    .auth-visual {
+      position: relative; overflow: hidden;
+      display: flex; flex-direction: column;
+      align-items: flex-start; justify-content: flex-end; padding: 48px;
+    }
+    .auth-visual::before {
+      content: ""; position: absolute; inset: 0;
+      background: radial-gradient(ellipse 80% 80% at 60% 30%,
+        rgba(168,85,247,0.07) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 60% at 30% 70%,
+        rgba(0,212,255,0.06) 0%, transparent 60%);
+      z-index: 1;
+    }
+    .auth-visual canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .auth-visual-content { position: relative; z-index: 2; }
+    .auth-visual-brand {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 32px;
+      font-family: var(--font-head); font-size: 20px; font-weight: 800;
+      letter-spacing: 2px; color: var(--text);
+    }
+    .auth-visual-brand .hex { color: var(--cyan); font-size: 26px; filter: drop-shadow(0 0 10px rgba(0,212,255,0.7)); }
+    .auth-visual-brand strong { color: var(--cyan); }
+    .auth-visual-title {
+      font-family: var(--font-head); font-size: clamp(28px, 4vw, 40px);
+      font-weight: 800; line-height: 1.2; margin-bottom: 16px;
+      background: linear-gradient(135deg, #fff 0%, var(--purple) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .auth-visual-sub { font-size: 15px; color: var(--text-muted); line-height: 1.7; max-width: 400px; margin-bottom: 32px; }
+    .auth-feature-list { display: flex; flex-direction: column; gap: 10px; }
+    .auth-feature { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text-dim); }
+    .auth-feature-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; background: var(--purple); box-shadow: 0 0 8px var(--purple); }
 
-{% block content %}
-<div class="auth-wrapper">
-  <div class="auth-card">
+    .auth-panel {
+      background: var(--surface); border-left: 1px solid var(--border);
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; padding: 48px 40px; overflow-y: auto;
+    }
+    .auth-form-inner { width: 100%; max-width: 360px; }
+    .auth-logo-sm {
+      display: flex; align-items: center; gap: 8px; margin-bottom: 36px;
+      font-family: var(--font-head); font-size: 16px; font-weight: 800;
+      letter-spacing: 2px; color: var(--text); text-decoration: none;
+    }
+    .auth-logo-sm .hex { color: var(--cyan); font-size: 18px; }
+    .auth-logo-sm strong { color: var(--cyan); }
+    .auth-heading { font-family: var(--font-head); font-size: 26px; font-weight: 800; color: var(--text); margin-bottom: 6px; }
+    .auth-heading-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 28px; }
+    .form-field { margin-bottom: 16px; }
+    .form-field label {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 11px; font-weight: 600; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: .8px; margin-bottom: 8px;
+    }
+    .field-input-wrap { position: relative; }
+    .field-input-wrap svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; }
+    .field-input-wrap input {
+      width: 100%; padding: 11px 14px 11px 40px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px; color: var(--text); font-size: 14px;
+      font-family: var(--font-body); outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .field-input-wrap input:focus {
+      border-color: var(--purple); box-shadow: 0 0 0 3px rgba(168,85,247,0.12);
+      background: rgba(168,85,247,0.02);
+    }
+    .field-input-wrap input::placeholder { color: var(--text-muted); }
+    .password-strength { margin-top: 6px; display: flex; gap: 4px; }
+    .strength-bar {
+      flex: 1; height: 3px; border-radius: 2px; background: rgba(255,255,255,0.06);
+      transition: background .3s;
+    }
+    .strength-bar.active-1 { background: var(--red); }
+    .strength-bar.active-2 { background: var(--orange); }
+    .strength-bar.active-3 { background: var(--yellow, #fbbf24); }
+    .strength-bar.active-4 { background: var(--green); }
+    .btn-auth {
+      width: 100%; padding: 13px;
+      background: linear-gradient(135deg, var(--purple-dim), var(--purple));
+      color: #fff; font-weight: 800; font-size: 14px;
+      border: none; border-radius: 10px; cursor: pointer;
+      font-family: var(--font-body);
+      box-shadow: 0 0 20px rgba(168,85,247,0.25);
+      transition: all .25s; display: flex; align-items: center;
+      justify-content: center; gap: 8px; margin-top: 6px;
+    }
+    .btn-auth:hover { background: var(--purple); box-shadow: 0 0 32px rgba(168,85,247,0.45); transform: translateY(-1px); }
+    .btn-auth:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+    .spinner-sm { width:14px; height:14px; border:2px solid rgba(255,255,255,0.2); border-top-color:#fff; border-radius:50%; animation:spin .6s linear infinite; }
+    .auth-error {
+      padding: 11px 14px; border-radius: 8px;
+      background: rgba(255,45,45,0.08); border: 1px solid rgba(255,45,45,0.25);
+      color: #fca5a5; font-size: 13px; margin-bottom: 16px; display: none;
+    }
+    .auth-divider { display: flex; align-items: center; gap: 12px; color: var(--text-muted); font-size: 12px; margin: 20px 0; }
+    .auth-divider::before, .auth-divider::after { content: ""; flex: 1; height: 1px; background: rgba(255,255,255,0.06); }
+    .auth-link-row { text-align: center; font-size: 13px; color: var(--text-muted); }
+    .auth-link-row a { color: var(--purple); font-weight: 600; }
+    .auth-link-row a:hover { color: #fff; }
+    .auth-badges { display: flex; justify-content: center; gap: 8px; margin-top: 28px; flex-wrap: wrap; }
+    .auth-badge { padding: 4px 10px; border-radius: 6px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); font-size: 10px; font-family: var(--font-mono); color: var(--text-muted); }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
 
-    <div class="auth-logo">
-      <span class="brand-hex lg">⬡</span>
-      <h1>TEAM<strong>CYBER</strong></h1>
-      <p class="auth-tagline">Create your analyst account</p>
+<div class="auth-root">
+  <!-- ── Left visual ── -->
+  <div class="auth-visual">
+    <canvas id="auth-canvas"></canvas>
+    <div class="auth-visual-content">
+      <div class="auth-visual-brand"><span class="hex">⬡</span>TEAM<strong>CYBER</strong></div>
+      <h1 class="auth-visual-title">Join the frontline<br>of cyber defence</h1>
+      <p class="auth-visual-sub">Create your analyst account and start running AI-powered security scans in under 60 seconds.</p>
+      <div class="auth-feature-list">
+        <div class="auth-feature"><span class="auth-feature-dot"></span> Unlimited code scans</div>
+        <div class="auth-feature"><span class="auth-feature-dot"></span> Live URL vulnerability probing</div>
+        <div class="auth-feature"><span class="auth-feature-dot"></span> Downloadable enterprise PDF reports</div>
+        <div class="auth-feature"><span class="auth-feature-dot"></span> Multi-framework compliance scoring</div>
+        <div class="auth-feature"><span class="auth-feature-dot"></span> AI-generated fix recommendations</div>
+      </div>
     </div>
+  </div>
 
-    <div id="auth-error" class="alert alert-error hidden"></div>
+  <!-- ── Right form ── -->
+  <div class="auth-panel">
+    <div class="auth-form-inner">
+      <a href="/" class="auth-logo-sm"><span class="hex">⬡</span>TEAM<strong>CYBER</strong></a>
 
-    <form id="register-form" class="auth-form" autocomplete="off">
-      <div class="form-group">
-        <label>
-          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          Username
-        </label>
-        <input type="text" id="username" placeholder="analyst_01" required />
+      <h2 class="auth-heading">Create account</h2>
+      <p class="auth-heading-sub">Start scanning your codebase in seconds</p>
+
+      <div class="auth-error" id="auth-error"></div>
+
+      <form id="register-form" autocomplete="off">
+        <div class="form-field">
+          <label>
+            <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Username
+          </label>
+          <div class="field-input-wrap">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <input type="text" id="username" placeholder="analyst_01" required/>
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label>
+            <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
+            Email Address
+          </label>
+          <div class="field-input-wrap">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
+            <input type="email" id="email" placeholder="analyst@company.com" required/>
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label>
+            <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Password
+            <span style="color:var(--text-muted);font-weight:400;font-size:10px">(min 8 chars)</span>
+          </label>
+          <div class="field-input-wrap">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <input type="password" id="password" placeholder="••••••••" required minlength="8" oninput="checkStrength(this.value)"/>
+          </div>
+          <div class="password-strength">
+            <div class="strength-bar" id="s1"></div>
+            <div class="strength-bar" id="s2"></div>
+            <div class="strength-bar" id="s3"></div>
+            <div class="strength-bar" id="s4"></div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-auth" id="reg-btn">
+          <span id="btn-text">Create Account →</span>
+          <span id="btn-loader" style="display:none;align-items:center;gap:8px">
+            <span class="spinner-sm"></span> Creating account…
+          </span>
+        </button>
+      </form>
+
+      <div class="auth-divider">or</div>
+      <p class="auth-link-row">Already have an account? <a href="/login">Sign in →</a></p>
+
+      <div class="auth-badges">
+        <span class="auth-badge">🛡 JWT Secured</span>
+        <span class="auth-badge">🔒 Encrypted</span>
+        <span class="auth-badge">🤖 AI Powered</span>
       </div>
-
-      <div class="form-group">
-        <label>
-          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
-          Email Address
-        </label>
-        <input type="email" id="email" placeholder="analyst@company.com" required />
-      </div>
-
-      <div class="form-group">
-        <label>
-          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          Password
-          <span class="hint">(min 8 characters)</span>
-        </label>
-        <input type="password" id="password" placeholder="••••••••" required minlength="8" />
-      </div>
-
-      <button type="submit" class="btn btn-primary btn-full btn-lg" id="reg-btn" style="margin-top:.5rem">
-        <span class="btn-text">Create Account</span>
-        <span class="btn-loader hidden">
-          <span class="spinner"></span>
-          Creating…
-        </span>
-      </button>
-    </form>
-
-    <div class="auth-divider">or</div>
-
-    <p class="auth-footer">
-      Already have an account? <a href="/login">Sign in →</a>
-    </p>
+    </div>
   </div>
 </div>
-{% endblock %}
 
-{% block scripts %}
 <script>
+if (localStorage.getItem("tc_token")) window.location.href = "/dashboard";
+
+function checkStrength(val) {
+  const bars = [document.getElementById("s1"), document.getElementById("s2"),
+                document.getElementById("s3"), document.getElementById("s4")];
+  let strength = 0;
+  if (val.length >= 8)  strength++;
+  if (/[A-Z]/.test(val)) strength++;
+  if (/[0-9]/.test(val)) strength++;
+  if (/[^A-Za-z0-9]/.test(val)) strength++;
+  bars.forEach((b, i) => {
+    b.className = "strength-bar" + (i < strength ? ` active-${strength}` : "");
+  });
+}
+
+(function () {
+  const c = document.getElementById("auth-canvas");
+  if (!c) return;
+  const ctx = c.getContext("2d");
+  function rs() { c.width = c.offsetWidth; c.height = c.offsetHeight; }
+  rs(); window.addEventListener("resize", rs);
+  const nodes = Array.from({length:60}, () => ({
+    x:Math.random()*c.width, y:Math.random()*c.height,
+    vx:(Math.random()-.5)*.5, vy:(Math.random()-.5)*.5, r:Math.random()*1.5+.5,
+  }));
+  function frame() {
+    ctx.clearRect(0,0,c.width,c.height);
+    nodes.forEach(n => {
+      n.x+=n.vx; n.y+=n.vy;
+      if(n.x<0||n.x>c.width)n.vx*=-1; if(n.y<0||n.y>c.height)n.vy*=-1;
+      ctx.beginPath(); ctx.arc(n.x,n.y,n.r,0,Math.PI*2);
+      ctx.fillStyle="rgba(168,85,247,0.5)"; ctx.fill();
+    });
+    for(let i=0;i<nodes.length;i++) for(let j=i+1;j<nodes.length;j++){
+      const dx=nodes[i].x-nodes[j].x, dy=nodes[i].y-nodes[j].y, d=Math.sqrt(dx*dx+dy*dy);
+      if(d<100){ ctx.beginPath(); ctx.moveTo(nodes[i].x,nodes[i].y); ctx.lineTo(nodes[j].x,nodes[j].y);
+        ctx.strokeStyle=`rgba(168,85,247,${(1-d/100)*.15})`; ctx.lineWidth=.5; ctx.stroke(); }
+    }
+    requestAnimationFrame(frame);
+  }
+  frame();
+})();
+
 document.getElementById("register-form").addEventListener("submit", async (e) => {
   e.preventDefault();
   const btn   = document.getElementById("reg-btn");
   const errEl = document.getElementById("auth-error");
-  btn.querySelector(".btn-text").classList.add("hidden");
-  btn.querySelector(".btn-loader").classList.remove("hidden");
-  btn.disabled = true;
-  errEl.classList.add("hidden");
+  document.getElementById("btn-text").style.display   = "none";
+  document.getElementById("btn-loader").style.display = "flex";
+  btn.disabled = true; errEl.style.display = "none";
 
   const res  = await fetch("/api/auth/register", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
+    method:"POST", headers:{"Content-Type":"application/json"},
     body: JSON.stringify({
       username: document.getElementById("username").value,
       email:    document.getElementById("email").value,
@@ -79,18 +273,18 @@ document.getElementById("register-form").addEventListener("submit", async (e) =>
     }),
   });
   const data = await res.json();
-
   if (res.ok) {
     localStorage.setItem("tc_token", data.token);
-    localStorage.setItem("tc_user", data.username);
+    localStorage.setItem("tc_user",  data.username);
     window.location.href = "/dashboard";
   } else {
-    errEl.textContent = data.error || "Registration failed";
-    errEl.classList.remove("hidden");
-    btn.querySelector(".btn-text").classList.remove("hidden");
-    btn.querySelector(".btn-loader").classList.add("hidden");
+    errEl.textContent   = data.error || "Registration failed";
+    errEl.style.display = "block";
+    document.getElementById("btn-text").style.display   = "flex";
+    document.getElementById("btn-loader").style.display = "none";
     btn.disabled = false;
   }
 });
 </script>
-{% endblock %}
+</body>
+</html>

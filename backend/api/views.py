@@ -1,11 +1,11 @@
-from flask import Blueprint, render_template, redirect, url_for
+from flask import Blueprint, render_template
 
 views_bp = Blueprint("views", __name__)
 
 
 @views_bp.route("/")
 def index():
-    return redirect(url_for("views.login"))
+    return render_template("landing.html")
 
 
 @views_bp.route("/login")

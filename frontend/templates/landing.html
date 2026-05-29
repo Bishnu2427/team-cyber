@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="Team Cyber — Autonomous multi-agent AI cybersecurity platform. Detect vulnerabilities, get AI root-cause analysis, and enforce OWASP, CWE, PCI-DSS and NIST compliance."/>
+  <title>Team Cyber — Autonomous AI Cybersecurity Platform</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}"/>
+</head>
+<body>
+
+<!-- Particle canvas -->
+<canvas id="tc-canvas"></canvas>
+
+<!-- ══════════════════════════════════════════════════════════
+     NAVBAR
+════════════════════════════════════════════════════════════ -->
+<nav class="l-nav" id="l-nav">
+  <a href="/" class="l-nav-brand">
+    <span class="hex">⬡</span>
+    TEAM<strong>CYBER</strong>
+  </a>
+  <div class="l-nav-links">
+    <a href="#features"    class="l-nav-link">Features</a>
+    <a href="#how"         class="l-nav-link">How It Works</a>
+    <a href="#compliance"  class="l-nav-link">Compliance</a>
+    <a href="/login"       class="l-nav-cta">Use Tool →</a>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════
+     HERO
+════════════════════════════════════════════════════════════ -->
+<section class="hero" id="hero">
+  <div class="hex-grid"></div>
+
+  <div style="max-width:900px;margin:0 auto">
+    <!-- Eyebrow -->
+    <div class="hero-eyebrow">
+      <span class="hero-eyebrow-dot"></span>
+      Powered by Multi-Agent AI  ·  Phase 2 Active
+    </div>
+
+    <!-- Title with glitch -->
+    <h1 class="hero-title">
+      <span class="line1">AUTONOMOUS</span>
+      <span class="line2 glitch" data-text="CYBERSECURITY">CYBERSECURITY</span>
+    </h1>
+
+    <!-- Sub -->
+    <p class="hero-sub">
+      A coordinated swarm of Red Team and Blue Team AI agents that scan your code,
+      probe live targets, detect every vulnerability, and deliver enterprise-grade
+      compliance reports in minutes — not days.
+    </p>
+
+    <!-- Typewriter -->
+    <div class="hero-typewriter">
+      <span id="typewriter-text"></span>
+    </div>
+
+    <!-- CTAs -->
+    <div class="hero-ctas">
+      <a href="/login" class="btn-hero-primary">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Launch Platform
+      </a>
+      <a href="#how" class="btn-hero-ghost">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        See How It Works
+      </a>
+    </div>
+
+    <!-- Stats — exactly 4 so the grid is always a single even row -->
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <span class="hero-stat-val" data-target="5000">0</span>
+        <span class="hero-stat-lbl">CVE Rules</span>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-val">4</span>
+        <span class="hero-stat-lbl">Compliance Frameworks</span>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-val">11</span>
+        <span class="hero-stat-lbl">Docker Containers</span>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-val">&lt; 3 min</span>
+        <span class="hero-stat-lbl">Per Scan</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     THREAT TICKER
+════════════════════════════════════════════════════════════ -->
+<div class="threat-ticker">
+  <span class="ticker-label">LIVE FEED</span>
+  <div class="ticker-track" id="ticker-track">
+    <!-- populated by JS x2 for seamless loop -->
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     HOW IT WORKS
+════════════════════════════════════════════════════════════ -->
+<section class="how-section" id="how">
+  <p class="section-label reveal">Process</p>
+  <h2 class="section-title reveal">Three steps to full visibility</h2>
+  <p class="section-sub reveal">From upload to enterprise report — fully automated, AI-verified, zero configuration needed.</p>
+
+  <div class="how-grid">
+    <div class="how-connector"></div>
+
+    <div class="how-step reveal">
+      <div class="how-num n1">01</div>
+      <div class="how-step-title">Submit Target</div>
+      <p class="how-step-desc">Upload a ZIP archive, paste a GitHub URL, or provide a live website address. No setup, no agents to install.</p>
+    </div>
+
+    <div class="how-step reveal reveal-delay-1">
+      <div class="how-num n2">02</div>
+      <div class="how-step-title">AI Agents Engage</div>
+      <p class="how-step-desc">Blue Team runs SAST + dependency CVE scans. Red Team probes for web, API, and configuration flaws — simultaneously.</p>
+    </div>
+
+    <div class="how-step reveal reveal-delay-2">
+      <div class="how-num n3">03</div>
+      <div class="how-step-title">Verified Report</div>
+      <p class="how-step-desc">Every finding passes LLM peer-review, deduplication, and consensus scoring. Download a boardroom-ready PDF instantly.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     CAPABILITIES
+════════════════════════════════════════════════════════════ -->
+<section class="cap-section" id="features">
+  <p class="section-label reveal">Arsenal</p>
+  <h2 class="section-title reveal">Built like a real security team</h2>
+  <p class="section-sub reveal">Every module mirrors how elite penetration testers and security engineers actually work.</p>
+
+  <div class="cap-grid">
+
+    <div class="cap-card cyan-cap reveal">
+      <div class="cap-icon cyan">🔬</div>
+      <div class="cap-title">SAST Analysis</div>
+      <p class="cap-desc">Semgrep scans every file across all languages. Bandit provides Python-specific deep analysis for dangerous functions, crypto misuse, and injection sinks.</p>
+      <div class="cap-tags">
+        <span class="cap-tag">Semgrep</span>
+        <span class="cap-tag">Bandit</span>
+        <span class="cap-tag">14 languages</span>
+      </div>
+    </div>
+
+    <div class="cap-card blue-cap reveal reveal-delay-1">
+      <div class="cap-icon blue">📦</div>
+      <div class="cap-title">Dependency CVE Scan</div>
+      <p class="cap-desc">Trivy maps every package across npm, pip, gem, cargo and go modules to the NVD CVE database. pip-audit adds Python-specific advisory coverage.</p>
+      <div class="cap-tags">
+        <span class="cap-tag">Trivy</span>
+        <span class="cap-tag">pip-audit</span>
+        <span class="cap-tag">NVD</span>
+      </div>
+    </div>
+
+    <div class="cap-card red-cap reveal reveal-delay-2">
+      <div class="cap-icon red">⚔</div>
+      <div class="cap-title">Red Team Recon</div>
+      <p class="cap-desc">HTTP probes for server disclosure, SSL issues, exposed .env/.git files, admin panels, CORS misconfiguration, and open redirects on live targets.</p>
+      <div class="cap-tags">
+        <span class="cap-tag">Live URL</span>
+        <span class="cap-tag">SSL Check</span>
+        <span class="cap-tag">CORS</span>
+      </div>
+    </div>
+
+    <div class="cap-card grn-cap reveal">
+      <div class="cap-icon grn">🤖</div>
+      <div class="cap-title">AI Root Cause Analysis</div>
+      <p class="cap-desc">Groq Llama3-70B explains exactly why each vulnerability exists, its exploitability, and generates precise remediation code — not generic advice.</p>
+      <div class="cap-tags">
+        <span class="cap-tag">Llama3-70B</span>
+        <span class="cap-tag">Groq</span>
+        <span class="cap-tag">Qwen2.5-Coder</span>
+      </div>
+    </div>
+
+    <div class="cap-card prp-cap reveal reveal-delay-1">
+      <div class="cap-icon prp">✅</div>
+      <div class="cap-title">Verification + Consensus</div>
+      <p class="cap-desc">Every finding is filtered, deduplicated, LLM peer-reviewed for false positives, and scored with a confidence level before appearing in any report.</p>
+      <div class="cap-tags">
+        <span class="cap-tag">Reflection</span>
+        <span class="cap-tag">Dedup</span>
+        <span class="cap-tag">Confidence</span>
+      </div>
+    </div>
+
+    <div class="cap-card org-cap reveal reveal-delay-2">
+      <div class="cap-icon org">📄</div>
+      <div class="cap-title">Enterprise PDF Reports</div>
+      <p class="cap-desc">Boardroom-ready PDFs with executive summary, full OWASP Top 10 breakdown, CWE Top 25, PCI-DSS, NIST 800-53, and per-finding remediation steps.</p>
+      <div class="cap-tags">
+        <span class="cap-tag">ReportLab</span>
+        <span class="cap-tag">OWASP</span>
+        <span class="cap-tag">4 frameworks</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     RED vs BLUE TEAM
+════════════════════════════════════════════════════════════ -->
+<section class="team-section">
+  <p class="section-label reveal">Intelligence</p>
+  <h2 class="section-title reveal">Two teams. One unified threat picture.</h2>
+  <p class="section-sub reveal">Offensive and defensive AI agents operate in parallel, then their findings are cross-validated by a dedicated consensus layer.</p>
+
+  <div class="team-grid">
+    <div class="team-card red reveal">
+      <div class="team-header">
+        <span class="team-badge red">⚔ Red Team</span>
+        <span style="font-size:11px;color:var(--text-muted);font-family:var(--font-mono)">Offensive · Phase 2</span>
+      </div>
+      <div class="team-title">Attack-Minded Intelligence</div>
+      <p style="font-size:13.5px;color:var(--text-muted);margin:12px 0 20px;line-height:1.7">Thinks like a penetration tester. Actively probes for weaknesses an attacker would exploit first.</p>
+      <ul class="team-features">
+        <li>Asset recon — exposed panels, sensitive files, git leaks</li>
+        <li>Security header analysis and SSL/TLS assessment</li>
+        <li>Safe SQLi & XSS reflection testing on live URLs</li>
+        <li>CORS misconfiguration and open redirect detection</li>
+        <li>JWT analysis — algorithm confusion, missing expiry</li>
+        <li>GraphQL introspection and API doc enumeration</li>
+      </ul>
+    </div>
+
+    <div class="team-card blue reveal reveal-delay-1">
+      <div class="team-header">
+        <span class="team-badge blue">🛡 Blue Team</span>
+        <span style="font-size:11px;color:var(--text-muted);font-family:var(--font-mono)">Defensive · Active</span>
+      </div>
+      <div class="team-title">Code-Level Defence</div>
+      <p style="font-size:13.5px;color:var(--text-muted);margin:12px 0 20px;line-height:1.7">Reads every line of code the way a secure code reviewer would — with AI-generated explanations and fixes.</p>
+      <ul class="team-features">
+        <li>Static analysis — injection, hardcoded secrets, SSRF</li>
+        <li>Dependency CVE mapping across all package managers</li>
+        <li>14 language support via Semgrep community rules</li>
+        <li>Python deep analysis via Bandit (B1xx–B7xx rules)</li>
+        <li>AI fix recommendations with specific code patterns</li>
+        <li>OWASP, CWE, PCI-DSS, NIST compliance mapping</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     COMPLIANCE
+════════════════════════════════════════════════════════════ -->
+<section class="compliance-section" id="compliance">
+  <p class="section-label reveal">Standards</p>
+  <h2 class="section-title reveal">Every major security framework, covered</h2>
+  <p class="section-sub reveal">Findings are automatically mapped to four industry-standard compliance frameworks — no manual work required.</p>
+
+  <div class="compliance-badges">
+    <div class="compliance-badge reveal">
+      <span class="badge-icon">🛡</span>
+      <div>
+        <div class="badge-name">OWASP Top 10</div>
+        <div style="font-size:11px;color:var(--text-muted)">2021 Edition · 10 categories</div>
+      </div>
+      <span class="badge-score">ACTIVE</span>
+    </div>
+    <div class="compliance-badge reveal reveal-delay-1">
+      <span class="badge-icon">⚠</span>
+      <div>
+        <div class="badge-name">CWE Top 25</div>
+        <div style="font-size:11px;color:var(--text-muted)">2023 Edition · 25 weaknesses</div>
+      </div>
+      <span class="badge-score">ACTIVE</span>
+    </div>
+    <div class="compliance-badge reveal reveal-delay-2">
+      <span class="badge-icon">💳</span>
+      <div>
+        <div class="badge-name">PCI-DSS v4.0</div>
+        <div style="font-size:11px;color:var(--text-muted)">10 key requirements</div>
+      </div>
+      <span class="badge-score">ACTIVE</span>
+    </div>
+    <div class="compliance-badge reveal reveal-delay-3">
+      <span class="badge-icon">🏛</span>
+      <div>
+        <div class="badge-name">NIST SP 800-53</div>
+        <div style="font-size:11px;color:var(--text-muted)">Rev 5 · 8 control families</div>
+      </div>
+      <span class="badge-score">ACTIVE</span>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     STATS
+════════════════════════════════════════════════════════════ -->
+<section class="stats-section">
+  <div class="stats-grid">
+    <div class="stat-item reveal">
+      <div class="stat-num" data-target="14">0</div>
+      <div class="stat-label">Scan Rule Languages</div>
+    </div>
+    <div class="stat-item reveal reveal-delay-1">
+      <div class="stat-num" data-target="25">0</div>
+      <div class="stat-label">CWE Weaknesses Tracked</div>
+    </div>
+    <div class="stat-item reveal reveal-delay-2">
+      <div class="stat-num" data-target="11">0</div>
+      <div class="stat-label">Microservice Containers</div>
+    </div>
+    <div class="stat-item reveal reveal-delay-3">
+      <div class="stat-num">3</div>
+      <div class="stat-label">AI Models in Pipeline</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     FINAL CTA
+════════════════════════════════════════════════════════════ -->
+<section class="cta-section">
+  <div class="cta-glow-ring"></div>
+  <p class="section-label reveal">Ready?</p>
+  <h2 class="cta-title reveal">
+    Find your vulnerabilities<br>
+    <span class="gradient-text">before attackers do.</span>
+  </h2>
+  <p class="cta-sub reveal">
+    No installs, no configuration. Paste a GitHub link or drag a ZIP — our AI agents take it from there.
+  </p>
+  <div class="cta-buttons reveal">
+    <a href="/login" class="btn-hero-primary">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      Launch Platform
+    </a>
+    <a href="/register" class="btn-hero-ghost">Create Free Account</a>
+  </div>
+
+  <div style="margin-top:40px;display:flex;justify-content:center;gap:20px;flex-wrap:wrap" class="reveal">
+    <span class="tag-pill">🔒 JWT Auth</span>
+    <span class="tag-pill">🐳 Fully Containerised</span>
+    <span class="tag-pill">🤖 Groq + Ollama</span>
+    <span class="tag-pill">📡 Real-time WebSocket</span>
+    <span class="tag-pill">🧠 RAG Memory</span>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     FOOTER
+════════════════════════════════════════════════════════════ -->
+<footer class="l-footer">
+  <div class="l-footer-brand">
+    <span class="hex">⬡</span>
+    TEAM<strong style="color:var(--cyan)">CYBER</strong>
+    <span style="font-family:var(--font-mono);font-size:11px;opacity:.5">v2.0 · Phase 2</span>
+  </div>
+  <div style="font-size:12px;color:var(--text-muted)">
+    Autonomous Multi-Agent Cybersecurity Platform
+  </div>
+  <div class="l-footer-links">
+    <a href="/login">Sign In</a>
+    <a href="/register">Register</a>
+    <a href="#how">How It Works</a>
+  </div>
+</footer>
+
+<!-- ══════════════════════════════════════════════════════════
+     SCRIPTS
+════════════════════════════════════════════════════════════ -->
+<script>
+// ── Redirect if already logged in ────────────────────────────────
+if (localStorage.getItem("tc_token")) window.location.href = "/dashboard";
+
+// ── Nav scroll effect ─────────────────────────────────────────────
+window.addEventListener("scroll", () => {
+  document.getElementById("l-nav").classList.toggle("scrolled", window.scrollY > 60);
+});
+
+// ── Particle network canvas ───────────────────────────────────────
+(function () {
+  const canvas = document.getElementById("tc-canvas");
+  const ctx    = canvas.getContext("2d");
+  let W, H, nodes = [];
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener("resize", () => { resize(); initNodes(); });
+
+  class Node {
+    constructor() { this.reset(true); }
+    reset(init) {
+      this.x  = Math.random() * W;
+      this.y  = init ? Math.random() * H : Math.random() * H;
+      this.vx = (Math.random() - 0.5) * 0.4;
+      this.vy = (Math.random() - 0.5) * 0.4;
+      this.r  = Math.random() * 1.5 + 0.5;
+      this.a  = Math.random() * 0.6 + 0.2;
+      this.pulse    = Math.random() < 0.06;
+      this.pulsePhase = Math.random() * Math.PI * 2;
+    }
+    update() {
+      this.x += this.vx; this.y += this.vy;
+      this.pulsePhase += 0.04;
+      if (this.x < 0 || this.x > W) this.vx *= -1;
+      if (this.y < 0 || this.y > H) this.vy *= -1;
+    }
+    draw() {
+      const a = this.pulse
+        ? this.a * (0.5 + 0.5 * Math.sin(this.pulsePhase))
+        : this.a;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.r * (this.pulse ? 1.8 : 1), 0, Math.PI * 2);
+      ctx.fillStyle = this.pulse
+        ? `rgba(168,85,247,${a})`
+        : `rgba(0,212,255,${a * 0.7})`;
+      ctx.fill();
+      if (this.pulse) {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.r * 4, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(168,85,247,${a * 0.15})`;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+    }
+  }
+
+  function initNodes() {
+    const count = Math.floor((W * H) / 14000);
+    nodes = Array.from({ length: count }, () => new Node());
+  }
+  initNodes();
+
+  const MAX_DIST = 130;
+
+  function drawEdges() {
+    for (let i = 0; i < nodes.length; i++) {
+      for (let j = i + 1; j < nodes.length; j++) {
+        const dx   = nodes[i].x - nodes[j].x;
+        const dy   = nodes[i].y - nodes[j].y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < MAX_DIST) {
+          const a = (1 - dist / MAX_DIST) * 0.18;
+          ctx.beginPath();
+          ctx.moveTo(nodes[i].x, nodes[i].y);
+          ctx.lineTo(nodes[j].x, nodes[j].y);
+          ctx.strokeStyle = `rgba(0,212,255,${a})`;
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+      }
+    }
+  }
+
+  function frame() {
+    ctx.clearRect(0, 0, W, H);
+    nodes.forEach(n => n.update());
+    drawEdges();
+    nodes.forEach(n => n.draw());
+    requestAnimationFrame(frame);
+  }
+  frame();
+})();
+
+// ── Typewriter ────────────────────────────────────────────────────
+(function () {
+  const lines = [
+    "Detecting Vulnerabilities in Real-Time",
+    "Red Team + Blue Team AI Coordination",
+    "OWASP · CWE · PCI-DSS · NIST Coverage",
+    "From Upload to PDF Report in Minutes",
+    "Zero False-Positive Goal with LLM Consensus",
+  ];
+  let li = 0, ci = 0, deleting = false;
+  const el = document.getElementById("typewriter-text");
+
+  function tick() {
+    const line = lines[li];
+    if (!deleting) {
+      ci++;
+      el.textContent = line.slice(0, ci);
+      // Show blinking cursor only once text starts appearing
+      el.classList.add("typing");
+      if (ci === line.length) {
+        deleting = true;
+        setTimeout(tick, 2200);
+        return;
+      }
+    } else {
+      ci--;
+      el.textContent = line.slice(0, ci);
+      if (ci === 0) {
+        // Briefly remove cursor between lines so it feels like a pause
+        el.classList.remove("typing");
+        deleting = false;
+        li = (li + 1) % lines.length;
+        setTimeout(tick, 420);
+        return;
+      }
+    }
+    setTimeout(tick, deleting ? 26 : 50);
+  }
+  // Delay startup — prevents orphan cursor showing on initial page load
+  setTimeout(tick, 1400);
+})();
+
+// ── Threat ticker ─────────────────────────────────────────────────
+(function () {
+  const threats = [
+    { dot:"dot", text:"CVE-2024-3094 · XZ Utils RCE — CRITICAL" },
+    { dot:"dot green", text:"SAST scan completed — 0 critical findings" },
+    { dot:"dot", text:"SQL Injection detected in auth/login.py:84" },
+    { dot:"dot yellow", text:"Dependency audit: lodash 4.17.15 — High" },
+    { dot:"dot", text:"Hardcoded credential found in config.py" },
+    { dot:"dot green", text:"Red Team probe: no admin panels exposed" },
+    { dot:"dot", text:"CORS wildcard origin detected — api.example.com" },
+    { dot:"dot yellow", text:"SSL certificate expires in 14 days" },
+    { dot:"dot green", text:"OWASP compliance score: 90% — 9/10 passing" },
+    { dot:"dot", text:"JWT without expiration claim — api/auth.py:22" },
+    { dot:"dot green", text:"Verification layer: 3 false positives filtered" },
+    { dot:"dot", text:"Missing X-Frame-Options header detected" },
+    { dot:"dot yellow", text:"pip-audit: requests 2.28.0 — Medium CVE" },
+    { dot:"dot green", text:"Blue Team SAST: 247 files scanned in 8s" },
+    { dot:"dot", text:"Path traversal risk — file upload handler" },
+  ];
+  const track = document.getElementById("ticker-track");
+  const html  = threats.map(t =>
+    `<div class="ticker-item"><span class="${t.dot}"></span>${t.text}</div>`
+  ).join("");
+  track.innerHTML = html + html;  // duplicate for seamless loop
+})();
+
+// ── Scroll reveal ─────────────────────────────────────────────────
+(function () {
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) e.target.classList.add("visible");
+    });
+  }, { threshold: 0.12 });
+  document.querySelectorAll(".reveal").forEach(el => obs.observe(el));
+})();
+
+// ── Animated stat counters ────────────────────────────────────────
+(function () {
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const el  = entry.target;
+      const end = parseInt(el.dataset.target);
+      if (isNaN(end)) return;
+      let current = 0;
+      const step  = Math.ceil(end / 50);
+      const timer = setInterval(() => {
+        current = Math.min(current + step, end);
+        el.textContent = current.toLocaleString();
+        if (current >= end) clearInterval(timer);
+      }, 30);
+      obs.unobserve(el);
+    });
+  }, { threshold: 0.5 });
+  document.querySelectorAll("[data-target]").forEach(el => obs.observe(el));
+})();
+</script>
+
+</body>
+</html>

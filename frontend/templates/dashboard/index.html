@@ -2,14 +2,15 @@
 {% block title %}Dashboard — Team Cyber{% endblock %}
 
 {% block content %}
+<!-- Page header -->
 <div class="page-header slide-up">
   <div>
     <h2 class="page-title">Security Dashboard</h2>
-    <p class="page-sub" id="welcome-msg">Loading…</p>
+    <p class="page-sub" id="welcome-msg" style="font-family:var(--mono);font-size:12px">Loading threat posture…</p>
   </div>
   <div class="header-actions">
-    <button class="btn btn-ghost btn-sm" onclick="loadScans()" title="Refresh">
-      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+    <button class="btn btn-ghost btn-sm" onclick="loadScans()">
+      <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
       Refresh
     </button>
     <a href="/scans/new" class="btn btn-primary">
@@ -19,49 +20,40 @@
   </div>
 </div>
 
-<!-- Risk + Severity Stats -->
-<div class="stats-grid slide-up" id="stats-grid" style="animation-delay:.04s">
-  <div class="stat-card critical">
-    <div class="stat-label">Critical</div>
-    <div class="stat-value" id="stat-critical">—</div>
+<!-- Threat posture + stat cards -->
+<div style="display:grid;grid-template-columns:auto 1fr;gap:1rem;margin-bottom:1.5rem;align-items:center" id="posture-row" class="slide-up" style="animation-delay:.04s">
+  <!-- Risk ring -->
+  <div class="section-card" style="padding:1.25rem 1.75rem;display:flex;align-items:center;gap:1.5rem;margin-bottom:0;min-width:260px">
+    <div id="dash-risk-ring"></div>
+    <div>
+      <div style="font-family:var(--font-head);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:4px">Threat Posture</div>
+      <div style="font-family:var(--font-head);font-size:22px;font-weight:800" id="risk-label-text">—</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:4px" id="risk-label-sub">Calculating…</div>
+    </div>
   </div>
-  <div class="stat-card high">
-    <div class="stat-label">High</div>
-    <div class="stat-value" id="stat-high">—</div>
-  </div>
-  <div class="stat-card medium">
-    <div class="stat-label">Medium</div>
-    <div class="stat-value" id="stat-medium">—</div>
-  </div>
-  <div class="stat-card low">
-    <div class="stat-label">Low</div>
-    <div class="stat-value" id="stat-low">—</div>
-  </div>
-  <div class="stat-card info">
-    <div class="stat-label">Total Scans</div>
-    <div class="stat-value" id="stat-scans">—</div>
-  </div>
-  <div class="stat-card purple">
-    <div class="stat-label">Risk Score</div>
-    <div class="stat-value" id="stat-risk" style="font-size:26px">—</div>
-    <div class="stat-trend" id="stat-risk-label"></div>
+  <!-- Stat cards -->
+  <div class="stats-grid" style="margin-bottom:0" id="stats-grid">
+    <div class="stat-card critical"><div class="stat-label">Critical</div><div class="stat-value" id="stat-critical">—</div></div>
+    <div class="stat-card high">   <div class="stat-label">High</div>    <div class="stat-value" id="stat-high">—</div></div>
+    <div class="stat-card medium"> <div class="stat-label">Medium</div>  <div class="stat-value" id="stat-medium">—</div></div>
+    <div class="stat-card low">    <div class="stat-label">Low</div>     <div class="stat-value" id="stat-low">—</div></div>
+    <div class="stat-card info">   <div class="stat-label">Total Scans</div><div class="stat-value" id="stat-scans">—</div></div>
   </div>
 </div>
 
-<!-- Severity bar across all scans -->
+<!-- Severity distribution bar -->
 <div id="sev-bar-wrap" class="hidden" style="margin-bottom:1.5rem">
   <div id="sev-bar-el"></div>
-  <div style="display:flex;gap:14px;margin-top:6px;flex-wrap:wrap">
-    <span class="tag" id="sev-legend-critical" style="border-color:rgba(255,45,45,.3);color:var(--critical)"></span>
-    <span class="tag" id="sev-legend-high"     style="border-color:rgba(255,140,0,.3);color:var(--high)"></span>
-    <span class="tag" id="sev-legend-medium"   style="border-color:rgba(255,187,0,.3);color:var(--medium)"></span>
-    <span class="tag" id="sev-legend-low"      style="border-color:rgba(59,130,246,.3);color:var(--low)"></span>
+  <div style="display:flex;gap:14px;margin-top:8px;flex-wrap:wrap">
+    <span class="tag" id="sev-lg-c" style="border-color:rgba(255,45,85,.3);color:var(--critical)"></span>
+    <span class="tag" id="sev-lg-h" style="border-color:rgba(255,123,0,.3);color:var(--high)"></span>
+    <span class="tag" id="sev-lg-m" style="border-color:rgba(251,191,36,.3);color:var(--medium)"></span>
+    <span class="tag" id="sev-lg-l" style="border-color:rgba(59,130,246,.3);color:var(--low)"></span>
   </div>
 </div>
 
 <!-- Charts row -->
-<div class="chart-section slide-up" id="chart-section" style="animation-delay:.08s;display:none">
-  <!-- Findings by severity donut -->
+<div class="chart-section slide-up" id="chart-section" style="display:none;animation-delay:.08s">
   <div class="chart-card">
     <div class="chart-title">Findings by Severity</div>
     <div class="donut-wrap">
@@ -69,35 +61,31 @@
       <div class="donut-legend" id="donut-legend"></div>
     </div>
   </div>
-
-  <!-- Scans by type bar -->
   <div class="chart-card">
     <div class="chart-title">Scans by Source Type</div>
     <div class="bar-chart" id="type-bar-chart"></div>
   </div>
 </div>
 
-<!-- Scans Table -->
+<!-- Scans table -->
 <div class="section-card slide-up" style="animation-delay:.12s">
   <div class="section-header">
     <h3>
-      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:6px;vertical-align:middle"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="opacity:.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
       Recent Scans
     </h3>
-    <div style="display:flex;align-items:center;gap:8px">
-      <span id="scan-count" class="tag" style="display:none"></span>
-    </div>
+    <span id="scan-count" class="tag" style="display:none"></span>
   </div>
 
   <div id="scan-loading" class="loading-row">
     <span class="loading-spinner"></span>
-    Loading scans…
+    Initialising security dashboard…
   </div>
 
   <div id="scan-empty" class="empty-state hidden">
     <div class="empty-icon">🔍</div>
     <h3>No scans yet</h3>
-    <p>Upload source code, clone a GitHub repo, or probe a live URL to start your first security scan.</p>
+    <p>Upload source code, clone a GitHub repository, or probe a live URL to run your first AI security scan.</p>
     <a href="/scans/new" class="btn btn-primary">Start your first scan →</a>
   </div>
 
@@ -108,11 +96,8 @@
         <th>Source</th>
         <th>Status</th>
         <th>Risk</th>
-        <th>C</th>
-        <th>H</th>
-        <th>M</th>
-        <th>L</th>
-        <th>Findings</th>
+        <th>C</th><th>H</th><th>M</th><th>L</th>
+        <th>Distribution</th>
         <th>Date</th>
         <th></th>
       </tr>
@@ -125,9 +110,8 @@
 {% block scripts %}
 <script>
 requireAuth();
-
 document.getElementById("welcome-msg").textContent =
-  `Welcome back, ${localStorage.getItem("tc_user") || "analyst"} — here's your threat posture`;
+  `> Welcome back, ${localStorage.getItem("tc_user") || "analyst"} — scanning threat posture…`;
 
 async function loadScans() {
   document.getElementById("scan-loading").classList.remove("hidden");
@@ -139,129 +123,104 @@ async function loadScans() {
   const scans = await apiGet("/api/scans/");
   document.getElementById("scan-loading").classList.add("hidden");
 
-  if (!scans || scans.length === 0) {
+  if (!scans || !scans.length) {
     document.getElementById("scan-empty").classList.remove("hidden");
     return;
   }
 
-  // Aggregate totals
-  let totals = { critical: 0, high: 0, medium: 0, low: 0 };
-  let typeCounts = { zip: 0, github: 0, url: 0 };
+  // Aggregate
+  let totals = { critical:0, high:0, medium:0, low:0 };
+  let types  = { zip:0, github:0, url:0 };
   scans.forEach(s => {
     const c = s.findings_count || {};
-    totals.critical += c.critical || 0;
-    totals.high     += c.high     || 0;
-    totals.medium   += c.medium   || 0;
-    totals.low      += c.low      || 0;
-    const t = s.source_type || "zip";
-    typeCounts[t] = (typeCounts[t] || 0) + 1;
+    totals.critical += c.critical||0; totals.high   += c.high||0;
+    totals.medium   += c.medium||0;   totals.low    += c.low||0;
+    const t = s.source_type||"zip"; types[t] = (types[t]||0)+1;
   });
 
-  // Counters
-  [["stat-critical", totals.critical], ["stat-high", totals.high],
-   ["stat-medium", totals.medium], ["stat-low", totals.low],
-   ["stat-scans", scans.length]].forEach(([id, v]) => {
-    animateCounter(document.getElementById(id), v);
-  });
+  // Stats
+  [["stat-critical",totals.critical],["stat-high",totals.high],
+   ["stat-medium",totals.medium],["stat-low",totals.low],
+   ["stat-scans",scans.length]].forEach(([id,v]) => animateCounter(document.getElementById(id),v));
 
-  // Risk score
-  const riskScore = calcRiskScore(totals);
-  const { label: riskLbl, color: riskClr } = riskLabel(riskScore);
-  const riskEl = document.getElementById("stat-risk");
-  animateCounter(riskEl, riskScore);
-  riskEl.style.color = riskClr;
-  document.getElementById("stat-risk-label").innerHTML =
-    `<span style="color:${riskClr};font-weight:600">${riskLbl}</span>`;
+  // Risk ring
+  const rs = calcRiskScore(totals);
+  const { label: rL, color: rC } = riskLabel(rs);
+  renderRiskRing(document.getElementById("dash-risk-ring"), totals);
+  const rlEl = document.getElementById("risk-label-text");
+  rlEl.textContent = rL; rlEl.style.color = rC;
+  document.getElementById("risk-label-sub").textContent =
+    `Score: ${rs}/100 — ${(totals.critical+totals.high+totals.medium+totals.low)} total findings`;
 
-  // Severity bar
+  // Sev bar
   const barWrap = document.getElementById("sev-bar-wrap");
-  if (totals.critical + totals.high + totals.medium + totals.low > 0) {
+  if (totals.critical+totals.high+totals.medium+totals.low > 0) {
     renderSevBar(document.getElementById("sev-bar-el"), totals);
-    document.getElementById("sev-legend-critical").textContent = `● ${totals.critical} Critical`;
-    document.getElementById("sev-legend-high").textContent     = `● ${totals.high} High`;
-    document.getElementById("sev-legend-medium").textContent   = `● ${totals.medium} Medium`;
-    document.getElementById("sev-legend-low").textContent      = `● ${totals.low} Low`;
+    document.getElementById("sev-lg-c").textContent = `● ${totals.critical} Critical`;
+    document.getElementById("sev-lg-h").textContent = `● ${totals.high} High`;
+    document.getElementById("sev-lg-m").textContent = `● ${totals.medium} Medium`;
+    document.getElementById("sev-lg-l").textContent = `● ${totals.low} Low`;
     barWrap.classList.remove("hidden");
   }
 
   // Charts
   document.getElementById("chart-section").style.display = "";
-
-  // Donut
-  const colors = {
-    critical: "var(--critical)", high: "var(--high)",
-    medium: "var(--medium)", low: "var(--low)"
-  };
-  const segments = Object.entries(totals)
-    .filter(([,v]) => v > 0)
-    .map(([k, v]) => ({ value: v, color: colors[k], label: k }));
-  renderDonut(document.getElementById("donut-svg"), segments, 120, 16);
-  const legend = document.getElementById("donut-legend");
-  legend.innerHTML = segments.map(s =>
+  const colors = { critical:"var(--critical)", high:"var(--high)", medium:"var(--medium)", low:"var(--low)" };
+  const segs = Object.entries(totals).filter(([,v])=>v>0).map(([k,v])=>({value:v,color:colors[k],label:k}));
+  renderDonut(document.getElementById("donut-svg"), segs, 120, 16);
+  document.getElementById("donut-legend").innerHTML = segs.map(s =>
     `<div class="donut-legend-row">
       <div class="donut-dot" style="background:${s.color}"></div>
       <span class="donut-legend-label">${s.label.charAt(0).toUpperCase()+s.label.slice(1)}</span>
       <span class="donut-legend-val" style="color:${s.color}">${s.value}</span>
-    </div>`
-  ).join("") || '<div style="color:var(--text-muted);font-size:12px">No findings yet</div>';
+    </div>`).join("") || '<div style="color:var(--text-muted);font-size:12px">No findings yet</div>';
 
-  // Type bar chart
-  const typeMax  = Math.max(...Object.values(typeCounts), 1);
+  const typeMax    = Math.max(...Object.values(types),1);
   const typeColors = { zip:"var(--cyan)", github:"var(--green-dim)", url:"var(--purple)" };
   const typeLabels = { zip:"📦 ZIP", github:"🐙 GitHub", url:"🌐 Live URL" };
   document.getElementById("type-bar-chart").innerHTML =
-    Object.entries(typeCounts).map(([k, v]) => `
+    Object.entries(types).map(([k,v]) => `
       <div class="bar-chart-row">
         <div class="bar-chart-label">${typeLabels[k]||k}</div>
         <div class="bar-chart-track">
-          <div class="bar-chart-fill" style="width:${(v/typeMax)*100}%;background:${typeColors[k]||'var(--cyan)'}"></div>
+          <div class="bar-chart-fill" style="width:${(v/typeMax)*100}%;background:${typeColors[k]||"var(--cyan)"}"></div>
         </div>
-        <div class="bar-chart-val" style="color:${typeColors[k]||'var(--cyan)'}">${v}</div>
+        <div class="bar-chart-val" style="color:${typeColors[k]||"var(--cyan)"}">${v}</div>
       </div>`).join("");
 
-  // Scan count badge
+  // Badge + count
   const countEl = document.getElementById("scan-count");
-  countEl.textContent = `${scans.length} scan${scans.length !== 1 ? "s" : ""}`;
+  countEl.textContent = `${scans.length} scan${scans.length!==1?"s":""}`;
   countEl.style.display = "";
 
-  // Table rows
+  // Table
   const tbody = document.getElementById("scans-tbody");
   tbody.innerHTML = "";
   scans.forEach((s, i) => {
-    const c    = s.findings_count || {};
-    const date = new Date(s.created_at).toLocaleDateString("en-GB",
-      { day:"2-digit", month:"short", year:"numeric" });
+    const c     = s.findings_count || {};
+    const date  = new Date(s.created_at).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"});
     const total = (c.critical||0)+(c.high||0)+(c.medium||0)+(c.low||0);
     const sRisk = calcRiskScore(c);
     const { color: rColor } = riskLabel(sRisk);
-
     const row = document.createElement("tr");
-    row.style.animationDelay = `${i * 35}ms`;
+    row.style.animationDelay = `${i*30}ms`;
     row.className = "slide-up";
     row.innerHTML = `
       <td>
-        <a href="/scans/${s._id}" class="link" style="display:flex;align-items:center;gap:8px;">
-          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;opacity:.4"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <a href="/scans/${s._id}" class="link" style="display:flex;align-items:center;gap:8px;font-family:var(--font-head);font-weight:600">
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="opacity:.4;flex-shrink:0"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
           ${s.project_name}
         </a>
       </td>
       <td>${sourceBadge(s.source_type)}</td>
-      <td>
-        <span class="badge badge-${statusColor(s.status)}" style="display:inline-flex;gap:5px;align-items:center">
-          ${statusDot(s.status)} ${s.status}
-        </span>
-      </td>
-      <td>
-        <span style="color:${rColor};font-family:var(--mono);font-weight:700;font-size:13px">${sRisk}</span>
-      </td>
+      <td><span class="badge badge-${statusColor(s.status)}" style="display:inline-flex;gap:5px;align-items:center">${statusDot(s.status)} ${s.status}</span></td>
+      <td><span style="color:${rColor};font-family:var(--mono);font-weight:800;font-size:13px">${sRisk}</span></td>
       <td class="sev-critical">${c.critical||0}</td>
       <td class="sev-high">${c.high||0}</td>
       <td class="sev-medium">${c.medium||0}</td>
       <td class="sev-low">${c.low||0}</td>
-      <td>
-        <div style="width:80px">${total > 0 ? `<div class="sev-bar" style="height:4px">${_miniBar(c)}</div>` : '<span style="color:var(--text-muted);font-size:11px">—</span>'}</div>
-      </td>
-      <td class="text-muted" style="font-family:var(--mono);font-size:12px">${date}</td>
+      <td style="min-width:80px">${total?`<div class="sev-bar" style="height:4px">${_miniBar(c)}</div>`:'<span style="color:var(--text-muted);font-size:11px">—</span>'}</td>
+      <td class="text-muted" style="font-family:var(--mono);font-size:11px">${date}</td>
       <td><a href="/scans/${s._id}" class="btn btn-ghost btn-sm">View →</a></td>`;
     tbody.appendChild(row);
   });
@@ -271,7 +230,7 @@ async function loadScans() {
 function _miniBar(c) {
   const t = (c.critical||0)+(c.high||0)+(c.medium||0)+(c.low||0);
   if (!t) return "";
-  const p = n => ((n/t)*100).toFixed(1);
+  const p = n=>((n/t)*100).toFixed(1);
   return `${c.critical?`<div class="sev-bar-seg critical" style="width:${p(c.critical)}%"></div>`:""}
           ${c.high?`<div class="sev-bar-seg high" style="width:${p(c.high)}%"></div>`:""}
           ${c.medium?`<div class="sev-bar-seg medium" style="width:${p(c.medium)}%"></div>`:""}

@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Team Cyber — Autonomous Multi-Agent Cybersecurity Platform" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="Team Cyber — Autonomous AI Cybersecurity Platform"/>
   <title>{% block title %}Team Cyber{% endblock %}</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}"/>
   {% block head %}{% endblock %}
 </head>
 <body>
@@ -15,7 +15,7 @@
   <a class="nav-brand" href="/dashboard">
     <span class="brand-hex">⬡</span>
     TEAM<strong>CYBER</strong>
-    <span class="tag" style="font-size:9px;letter-spacing:.5px;margin-left:4px;opacity:.6">v2</span>
+    <span class="tag" style="font-size:9px;letter-spacing:.3px;margin-left:2px;opacity:.5;padding:1px 5px">v2</span>
   </a>
 
   <div class="nav-links">
@@ -28,15 +28,18 @@
       New Scan
     </a>
 
-    <div style="width:1px;height:20px;background:var(--border);margin:0 4px;"></div>
+    <div style="width:1px;height:22px;background:rgba(255,255,255,0.07);margin:0 6px"></div>
 
     <div class="nav-user">
       <div class="nav-avatar" id="nav-avatar">?</div>
-      <span id="nav-username" style="font-weight:500">—</span>
+      <span id="nav-username" style="font-weight:600;font-size:12px">—</span>
+      <span style="opacity:.3;font-size:10px">│</span>
+      <span style="font-size:10px;color:var(--green-dim);font-family:var(--mono)">ANALYST</span>
     </div>
 
-    <button class="nav-link" onclick="logout()" title="Logout" style="margin-left:2px;">
-      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    <button class="nav-link btn-ghost btn-sm" onclick="logout()" title="Sign out" style="margin-left:2px;gap:5px">
+      <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Sign out
     </button>
   </div>
 </nav>
