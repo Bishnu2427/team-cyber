@@ -5,18 +5,37 @@
 <div class="page-header slide-up">
   <div>
     <h2 class="page-title">New Security Scan</h2>
-    <p class="page-sub">Upload source code or point to a GitHub repository</p>
+    <p class="page-sub">Analyse source code or probe a live target — AI agents detect, verify, and explain every finding</p>
   </div>
-  <a href="/dashboard" class="btn btn-ghost">← Back</a>
+  <a href="/dashboard" class="btn btn-ghost">← Dashboard</a>
 </div>
 
-<div class="scan-form-grid">
+<!-- Scan type selector -->
+<div class="scan-tabs slide-up" style="animation-delay:.05s" id="scan-tabs">
+  <button class="scan-tab active" data-tab="zip" onclick="switchTab('zip')">
+    <span class="tab-icon">📦</span>
+    ZIP Archive
+  </button>
+  <button class="scan-tab" data-tab="github" onclick="switchTab('github')">
+    <span class="tab-icon">🐙</span>
+    GitHub Repo
+  </button>
+  <button class="scan-tab" data-tab="url" onclick="switchTab('url')">
+    <span class="tab-icon">🌐</span>
+    Live URL
+    <span class="tab-badge">NEW</span>
+  </button>
+</div>
 
-  <!-- ZIP Upload -->
-  <div class="form-card slide-up" style="animation-delay:.05s">
+<!-- ── ZIP Upload ─────────────────────────────────────────── -->
+<div id="tab-zip" class="slide-up" style="animation-delay:.1s">
+  <div class="form-card">
     <div class="form-card-title">
-      <span style="font-size:20px">📦</span>
-      Upload ZIP Archive
+      <span style="font-size:22px">📦</span>
+      <div>
+        Upload ZIP Archive
+        <div class="form-card-sub">Static + dependency analysis on your source code</div>
+      </div>
     </div>
 
     <div id="zip-error" class="alert alert-error hidden"></div>
@@ -24,9 +43,8 @@
     <form id="zip-form" enctype="multipart/form-data">
       <div class="form-group">
         <label>Project Name <span class="hint">(optional)</span></label>
-        <input type="text" id="zip-name" placeholder="my-app" />
+        <input type="text" id="zip-name" placeholder="my-application" />
       </div>
-
       <div class="form-group">
         <label>ZIP File</label>
         <div class="file-drop" id="file-drop">
@@ -40,22 +58,26 @@
           </div>
         </div>
       </div>
-
       <button type="submit" class="btn btn-primary btn-full" id="zip-btn">
         <span class="btn-text">
           <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
           Start Scan
         </span>
-        <span class="btn-loader hidden"><span class="spinner"></span>Uploading…</span>
+        <span class="btn-loader hidden"><span class="spinner"></span> Uploading…</span>
       </button>
     </form>
   </div>
+</div>
 
-  <!-- GitHub -->
-  <div class="form-card slide-up" style="animation-delay:.1s">
+<!-- ── GitHub ─────────────────────────────────────────────── -->
+<div id="tab-github" class="hidden slide-up" style="animation-delay:.1s">
+  <div class="form-card">
     <div class="form-card-title">
-      <span style="font-size:20px">🐙</span>
-      GitHub Repository
+      <span style="font-size:22px">🐙</span>
+      <div>
+        GitHub Repository
+        <div class="form-card-sub">Cloned at depth 1 — no authentication required for public repos</div>
+      </div>
     </div>
 
     <div id="gh-error" class="alert alert-error hidden"></div>
@@ -65,62 +87,131 @@
         <label>Project Name <span class="hint">(optional)</span></label>
         <input type="text" id="gh-name" placeholder="my-repo" />
       </div>
-
       <div class="form-group">
         <label>Repository URL</label>
         <input type="url" id="gh-url"
-               placeholder="https://github.com/owner/repo" required />
+               placeholder="https://github.com/owner/repository" required />
       </div>
-
       <div class="alert alert-info" style="font-size:12px;margin-bottom:1rem">
         <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        Public repositories only. The repo is cloned at depth 1.
+        Public repositories only. The repo is shallow-cloned (depth 1) into a secure container.
       </div>
-
       <button type="submit" class="btn btn-primary btn-full" id="gh-btn">
         <span class="btn-text">
           <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-          Start Scan
+          Clone &amp; Scan
         </span>
-        <span class="btn-loader hidden"><span class="spinner"></span>Cloning…</span>
+        <span class="btn-loader hidden"><span class="spinner"></span> Cloning…</span>
       </button>
     </form>
   </div>
+</div>
 
+<!-- ── Live URL ────────────────────────────────────────────── -->
+<div id="tab-url" class="hidden slide-up" style="animation-delay:.1s">
+  <div class="form-card">
+    <div class="form-card-title">
+      <span style="font-size:22px">🌐</span>
+      <div>
+        Live Website / API Scan
+        <div class="form-card-sub">Red Team agents probe the live target — no source code required</div>
+      </div>
+    </div>
+
+    <div class="alert alert-warning" style="font-size:12px;margin-bottom:1.5rem">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      Only scan targets you own or have explicit written permission to test. Unauthorised scanning is illegal.
+    </div>
+
+    <div id="url-error" class="alert alert-error hidden"></div>
+
+    <form id="url-form">
+      <div class="form-group">
+        <label>Project Name <span class="hint">(optional)</span></label>
+        <input type="text" id="url-name" placeholder="my-production-api" />
+      </div>
+      <div class="form-group">
+        <label>Target URL</label>
+        <input type="url" id="url-target"
+               placeholder="https://api.example.com" required />
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:1.5rem">
+        <div style="background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center">
+          <div style="font-size:18px;margin-bottom:4px">🔭</div>
+          <div style="font-size:11px;font-weight:600;color:var(--text-dim)">Recon</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:2px">Headers · SSL · Exposed files</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center">
+          <div style="font-size:18px;margin-bottom:4px">🛡</div>
+          <div style="font-size:11px;font-weight:600;color:var(--text-dim)">Web</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:2px">Security headers · Cookies · XSS/SQLi</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center">
+          <div style="font-size:18px;margin-bottom:4px">🔑</div>
+          <div style="font-size:11px;font-weight:600;color:var(--text-dim)">API</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:2px">Endpoints · JWT · Auth bypass</div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-full" id="url-btn"
+              style="background:linear-gradient(135deg,var(--cyan),var(--purple));color:#000;">
+        <span class="btn-text">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          Launch Live Scan
+        </span>
+        <span class="btn-loader hidden"><span class="spinner"></span> Starting…</span>
+      </button>
+    </form>
+  </div>
 </div>
 
 <!-- What happens next -->
-<div class="section-card slide-up" style="animation-delay:.15s">
+<div class="section-card slide-up" style="animation-delay:.18s" id="explainer">
   <div class="section-header">
-    <h3>What happens when you scan?</h3>
+    <h3>How the AI agent pipeline works</h3>
   </div>
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;">
-    <div style="display:flex;gap:10px;align-items:flex-start">
-      <span style="font-size:22px;flex-shrink:0">🔬</span>
+  <div class="scan-mode-grid">
+    <div class="scan-mode-item">
+      <div class="scan-mode-icon">🔬</div>
       <div>
-        <div style="font-weight:600;font-size:13px;margin-bottom:3px">SAST Analysis</div>
-        <div style="font-size:12px;color:var(--text-muted)">Semgrep + Bandit scan every file for injection, secrets, and insecure patterns</div>
+        <div class="scan-mode-title">SAST Analysis <span class="badge badge-blue-team" style="font-size:9px;padding:1px 5px">Blue Team</span></div>
+        <div class="scan-mode-desc">Semgrep + Bandit scan every file for injection patterns, insecure functions, hardcoded secrets, and dangerous APIs.</div>
       </div>
     </div>
-    <div style="display:flex;gap:10px;align-items:flex-start">
-      <span style="font-size:22px;flex-shrink:0">📦</span>
+    <div class="scan-mode-item">
+      <div class="scan-mode-icon">📦</div>
       <div>
-        <div style="font-weight:600;font-size:13px;margin-bottom:3px">Dependency CVEs</div>
-        <div style="font-size:12px;color:var(--text-muted)">Trivy + pip-audit map every package to known CVEs</div>
+        <div class="scan-mode-title">Dependency CVEs <span class="badge badge-blue-team" style="font-size:9px;padding:1px 5px">Blue Team</span></div>
+        <div class="scan-mode-desc">Trivy + pip-audit map every package to known CVEs across npm, pip, gem, go modules, and cargo.</div>
       </div>
     </div>
-    <div style="display:flex;gap:10px;align-items:flex-start">
-      <span style="font-size:22px;flex-shrink:0">🤖</span>
+    <div class="scan-mode-item">
+      <div class="scan-mode-icon">⚔</div>
       <div>
-        <div style="font-weight:600;font-size:13px;margin-bottom:3px">AI Enrichment</div>
-        <div style="font-size:12px;color:var(--text-muted)">Groq Llama3-70B explains root cause and generates fixes</div>
+        <div class="scan-mode-title">Offensive Recon <span class="badge badge-red-team" style="font-size:9px;padding:1px 5px">Red Team</span></div>
+        <div class="scan-mode-desc">Recon, Web, and API agents probe for CORS issues, JWT flaws, exposed admin panels, security header gaps, and more.</div>
       </div>
     </div>
-    <div style="display:flex;gap:10px;align-items:flex-start">
-      <span style="font-size:22px;flex-shrink:0">✅</span>
+    <div class="scan-mode-item">
+      <div class="scan-mode-icon">✅</div>
       <div>
-        <div style="font-weight:600;font-size:13px;margin-bottom:3px">Verification</div>
-        <div style="font-size:12px;color:var(--text-muted)">LLM peer-review filters false positives and scores confidence</div>
+        <div class="scan-mode-title">Verification + Consensus</div>
+        <div class="scan-mode-desc">Every finding passes through LLM peer-review, deduplication, and confidence scoring before entering the report.</div>
+      </div>
+    </div>
+    <div class="scan-mode-item">
+      <div class="scan-mode-icon">🤖</div>
+      <div>
+        <div class="scan-mode-title">AI Root Cause Analysis</div>
+        <div class="scan-mode-desc">Groq Llama3-70B explains why each vulnerability exists, its impact, and generates actionable remediation steps.</div>
+      </div>
+    </div>
+    <div class="scan-mode-item">
+      <div class="scan-mode-icon">📄</div>
+      <div>
+        <div class="scan-mode-title">Enterprise PDF Report</div>
+        <div class="scan-mode-desc">Full OWASP Top 10 compliance breakdown, executive summary, and per-finding detail with code snippets.</div>
       </div>
     </div>
   </div>
@@ -131,6 +222,21 @@
 <script>
 requireAuth();
 
+// ── Tab switching ────────────────────────────────────────────────
+function switchTab(name) {
+  ["zip","github","url"].forEach(t => {
+    document.getElementById(`tab-${t}`).classList.toggle("hidden", t !== name);
+    document.querySelector(`[data-tab="${t}"]`).classList.toggle("active", t === name);
+  });
+  // Animate in the active tab
+  const active = document.getElementById(`tab-${name}`);
+  active.style.animation = "none";
+  requestAnimationFrame(() => {
+    active.style.animation = "fadeInUp .35s ease both";
+  });
+}
+
+// ── File drop ────────────────────────────────────────────────────
 const fileInput = document.getElementById("zip-file");
 const fileLabel = document.getElementById("file-label");
 const fileDrop  = document.getElementById("file-drop");
@@ -140,11 +246,10 @@ fileInput.addEventListener("change", () => {
   if (f) {
     fileLabel.innerHTML = `<strong style="color:var(--cyan)">${f.name}</strong> <span style="color:var(--text-muted)">(${(f.size/1024/1024).toFixed(1)} MB)</span>`;
     fileDrop.style.borderColor = "var(--cyan)";
+    fileDrop.style.background  = "var(--cyan-glow)";
   }
 });
-
-// Drag & drop
-fileDrop.addEventListener("dragover", e => { e.preventDefault(); fileDrop.classList.add("drag-over"); });
+fileDrop.addEventListener("dragover",  e => { e.preventDefault(); fileDrop.classList.add("drag-over"); });
 fileDrop.addEventListener("dragleave", () => fileDrop.classList.remove("drag-over"));
 fileDrop.addEventListener("drop", e => {
   e.preventDefault();
@@ -156,15 +261,19 @@ fileDrop.addEventListener("drop", e => {
     fileInput.files = dt.files;
     fileLabel.innerHTML = `<strong style="color:var(--cyan)">${file.name}</strong>`;
     fileDrop.style.borderColor = "var(--cyan)";
+  } else {
+    showToast("Only .zip files are accepted", "error");
   }
 });
 
-document.getElementById("zip-form").addEventListener("submit", async (e) => {
+// ── ZIP submit ───────────────────────────────────────────────────
+document.getElementById("zip-form").addEventListener("submit", async e => {
   e.preventDefault();
   const btn   = document.getElementById("zip-btn");
   const errEl = document.getElementById("zip-error");
   const file  = fileInput.files[0];
-  if (!file) { errEl.textContent = "Please select a ZIP file"; errEl.classList.remove("hidden"); return; }
+  if (!file) { showErr(errEl, "Please select a ZIP file"); return; }
+  if (file.size > 100 * 1024 * 1024) { showErr(errEl, "File exceeds 100 MB limit"); return; }
 
   setLoading(btn, true);
   errEl.classList.add("hidden");
@@ -179,44 +288,75 @@ document.getElementById("zip-form").addEventListener("submit", async (e) => {
     body: fd,
   });
   const data = await res.json();
-
   if (res.ok) {
-    showToast("Scan started! Redirecting…", "success");
+    showToast("Scan queued — redirecting…", "success");
     setTimeout(() => window.location.href = `/scans/${data.scan_id}`, 600);
   } else {
-    errEl.textContent = data.error || "Upload failed";
-    errEl.classList.remove("hidden");
+    showErr(errEl, data.error || "Upload failed");
     setLoading(btn, false);
   }
 });
 
-document.getElementById("gh-form").addEventListener("submit", async (e) => {
+// ── GitHub submit ────────────────────────────────────────────────
+document.getElementById("gh-form").addEventListener("submit", async e => {
   e.preventDefault();
   const btn   = document.getElementById("gh-btn");
   const errEl = document.getElementById("gh-error");
   const url   = document.getElementById("gh-url").value.trim();
   const name  = document.getElementById("gh-name").value.trim() || url.split("/").pop();
 
+  if (!url.startsWith("https://github.com/")) {
+    showErr(errEl, "URL must start with https://github.com/"); return;
+  }
   setLoading(btn, true);
   errEl.classList.add("hidden");
 
   const res  = await apiPost("/api/scans/github", { url, project_name: name });
   const data = await res.json();
-
   if (res.ok) {
-    showToast("Cloning repo and starting scan…", "success");
+    showToast("Cloning repo — redirecting…", "success");
     setTimeout(() => window.location.href = `/scans/${data.scan_id}`, 600);
   } else {
-    errEl.textContent = data.error || "Failed to start scan";
-    errEl.classList.remove("hidden");
+    showErr(errEl, data.error || "Failed to start scan");
     setLoading(btn, false);
   }
 });
 
+// ── URL submit ───────────────────────────────────────────────────
+document.getElementById("url-form").addEventListener("submit", async e => {
+  e.preventDefault();
+  const btn    = document.getElementById("url-btn");
+  const errEl  = document.getElementById("url-error");
+  const target = document.getElementById("url-target").value.trim();
+  const name   = document.getElementById("url-name").value.trim() ||
+                 new URL(target).hostname;
+
+  if (!target.startsWith("http://") && !target.startsWith("https://")) {
+    showErr(errEl, "URL must start with http:// or https://"); return;
+  }
+  setLoading(btn, true);
+  errEl.classList.add("hidden");
+
+  const res  = await apiPost("/api/scans/url", { url: target, project_name: name });
+  const data = await res.json();
+  if (res.ok) {
+    showToast("Live scan queued — redirecting…", "success");
+    setTimeout(() => window.location.href = `/scans/${data.scan_id}`, 600);
+  } else {
+    showErr(errEl, data.error || "Failed to start URL scan");
+    setLoading(btn, false);
+  }
+});
+
+// ── Helpers ──────────────────────────────────────────────────────
 function setLoading(btn, on) {
   btn.querySelector(".btn-text").classList.toggle("hidden", on);
   btn.querySelector(".btn-loader").classList.toggle("hidden", !on);
   btn.disabled = on;
+}
+function showErr(el, msg) {
+  el.textContent = msg;
+  el.classList.remove("hidden");
 }
 </script>
 {% endblock %}

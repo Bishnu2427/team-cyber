@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Team Cyber — Autonomous Multi-Agent Cybersecurity Platform" />
   <title>{% block title %}Team Cyber{% endblock %}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
   {% block head %}{% endblock %}
@@ -14,6 +15,7 @@
   <a class="nav-brand" href="/dashboard">
     <span class="brand-hex">⬡</span>
     TEAM<strong>CYBER</strong>
+    <span class="tag" style="font-size:9px;letter-spacing:.5px;margin-left:4px;opacity:.6">v2</span>
   </a>
 
   <div class="nav-links">
@@ -21,12 +23,20 @@
       <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
       Dashboard
     </a>
-    <a href="/scans/new" class="nav-link btn-outline" style="padding:6px 14px;">
-      + New Scan
+    <a href="/scans/new" class="nav-link">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      New Scan
     </a>
-    <button class="nav-link" onclick="logout()" style="margin-left:4px;">
+
+    <div style="width:1px;height:20px;background:var(--border);margin:0 4px;"></div>
+
+    <div class="nav-user">
+      <div class="nav-avatar" id="nav-avatar">?</div>
+      <span id="nav-username" style="font-weight:500">—</span>
+    </div>
+
+    <button class="nav-link" onclick="logout()" title="Logout" style="margin-left:2px;">
       <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-      Logout
     </button>
   </div>
 </nav>
